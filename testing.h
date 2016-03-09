@@ -8,15 +8,17 @@
 
 #include "print.h"
 
-template <class T, class L>
-void expect(const std::string &name, const T &expected, const L &actual);
+using string = std::string;
 
 template <class T, class L>
-void expect(const std::string &name, const T &expected,
+void expect(const string &name, const T &expected, const L &actual);
+
+template <class T, class L>
+void expect(const string &name, const T &expected,
             const L &actual, const T &threshold);
 
 template <class T, class L>
-void expect(const std::string &name, const T &expected,
+void expect(const string &name, const T &expected,
             const L &actual) {
   std::clock_t start = std::clock();
   auto _actual = actual();
@@ -53,7 +55,7 @@ void expect(const std::string &name, const T &expected,
 };
 
 template <class T, class L>
-void expect(const std::string &name, const T &expected,
+void expect(const string &name, const T &expected,
             const L &actual, const T &threshold) {
   std::clock_t start = std::clock();
   auto _actual = actual();

@@ -12,7 +12,37 @@ template <class M>
 using matrix = std::vector< std::vector< M > >;
 
 template <class V>
-V sum(const std::vector<V> &vec);
+using vector = std::vector<V>;
+
+template <typename V>
+V dot(const vector<V> &as, const vector<V> &bs);
+
+template <typename M>
+matrix<M> lower(const matrix<M> &mat);
+
+template <typename M>
+matrix<M> upper(const matrix<M> &mat);
+
+template <typename M>
+vector<M> column(const unsigned long &c, const matrix<M> &mat);
+
+template <typename M>
+matrix<M> innerProduct(const matrix<M> &a, const matrix<M> &b);
+
+template <typename M>
+matrix<M> outerProduct(const matrix<M> &a, const matrix<M> &b);
+
+template <typename M>
+matrix<M> diagonal(const matrix<M> &mat);
+
+template <typename M>
+matrix<M> minorDiagonal(const matrix<M> &mat);
+
+template <typename M>
+M trace(const matrix<M> &mat);
+
+template <typename M>
+matrix<M> scale(const M &s, const matrix<M> &mat);
 
 template <class M>
 matrix<M> subtract(const matrix<M> &a, const matrix<M> &b);
@@ -24,8 +54,8 @@ template <class M>
 matrix<M> adjacency(const matrix<M> &laplacian);
 
 template <class M>
-matrix<M> adjacency(const std::vector<char> &nodes,
-                    const std::vector<std::vector<char>> &edges);
+matrix<M> adjacency(const vector<char> &nodes,
+                    const vector<vector<char>> &edges);
 
 template <class M>
 matrix<M> complement(const matrix<M> &mat);
@@ -52,9 +82,12 @@ template <class M>
 matrix<M> fromGslMatrix(gsl_matrix * mat);
 
 template <class M>
-std::vector<gsl_complex> eigenvalues(const matrix<M> &mat);
+vector<gsl_complex> eigenvalues(const matrix<M> &mat);
+vector<gsl_complex> eigenvalues(gsl_matrix * m);
 
-std::vector<gsl_complex> eigenvalues(gsl_matrix * m);
+template <class M>
+double determinant(const matrix<M> &mat);
+double determinant(gsl_matrix * m);
 
 template <class M>
 bool connected(const matrix<M> &mat, bool adjacency = true);
@@ -63,16 +96,159 @@ template <class M>
 bool hasEulerCircuit(const matrix<M> &mat);
 
 template <class M>
-std::vector<int> eulerCircuit(const matrix<M> &adjacency);
+vector<int> eulerCircuit(const matrix<M> &adjacency);
 
 template <class M>
 bool isSymmetric(const matrix<M> &mat);
 
-template <class V>
-V sum(const std::vector<V> &vec) {
+template <typename V>
+V dot(const vector<V> &as, const vector<V> &bs) {
   V ret = 0;
-  for (unsigned long i = 0; i < vec.size(); i++)
-    ret += vec[i];
+  for (unsigned long i = 0; i < as.size(); i++)
+    ret += (as[i] * bs[i]);
+
+  return ret;
+}
+
+template <typename M>
+matrix<M> lower(const matrix<M> &mat) {
+  const unsigned long size = mat.size();
+
+  matrix<M> ret(size, vector<M>(size));
+
+  for (unsigned long r = 0; r < size; r++)
+    for (unsigned long c = 0; c < size; c++)
+      ret[r][c] = c <= r ? mat[r][c] : (M)0;
+
+  return ret;
+}
+
+template <typename M>
+matrix<M> upper(const matrix<M> &mat) {
+  const unsigned long size = mat.size();
+
+  matrix<M> ret(size, vector<M>(size));
+
+  for (unsigned long r = 0; r < size; r++)
+    for (unsigned long c = 0; c < size; c++)
+      ret[r][c] = c >= r ? mat[r][c] : (M)0;
+
+  return ret;
+}
+
+template <typename M>
+vector<M> column(const unsigned long &c, const matrix<M> &mat) {
+  unsigned long rows = mat.size();
+
+  vector<M> ret;
+
+  for (unsigned long r = 0; r < rows; r++)
+    ret.push_back(mat[r][c]);
+
+  return ret;
+}
+
+template <typename M>
+matrix<M> innerProduct(const matrix<M> &a, const matrix<M> &b) {
+  const unsigned long
+    rows = a.size(),
+    columns = b[0].size();
+
+  matrix<M> ret(rows, vector<M>(columns));
+
+  for (unsigned long r = 0; r < rows; r++)
+    for (unsigned long c = 0; c < columns; c++)
+      ret[r][c] = dot(a[r], column(c, b));
+
+  return ret;
+}
+
+template <typename M>
+matrix<M> outerProduct(const matrix<M> &a, const matrix<M> &b) {
+  const unsigned long
+    aRows = a.size(),
+    aColumns = a[0].size(),
+    bRows = b.size(),
+    bColumns = b[0].size(),
+    rows = aRows * bRows,
+    columns = aColumns * bColumns;
+
+  unsigned long
+    sRows = 0,
+    sColumns = 0;
+
+  matrix<M>
+    ret(rows, vector<M>(columns)),
+    s;
+
+  for (unsigned long r = 0; r < aRows; r++) {
+    for (unsigned long c = 0; c < aColumns; c++) {
+      s = scale(a[r][c], b);
+      sRows = s.size();
+      sColumns = s[0].size();
+
+      for (unsigned long sr = 0; sr < sRows; sr++) {
+        for (unsigned long sc = 0; sc < sColumns; sc++) {
+          ret[(r * sRows) + sr][(c * sColumns) + sc] = s[sr][sc];
+        }
+      }
+    }
+  }
+
+  return ret;
+}
+
+template <typename M>
+matrix<M> diagonal(const matrix<M> &mat) {
+  const unsigned long size = mat.size();
+
+  matrix<M> ret(size, vector<M>(size, (M)0));
+
+  for (unsigned long i = 0; i < size; i++)
+    ret[i][i] = mat[i][i];
+
+  return ret;
+}
+
+template <typename M>
+matrix<M> minorDiagonal(const matrix<M> &mat) {
+  const unsigned long size = mat.size();
+
+  matrix<M> ret(size, vector<M>(size, 0));
+
+  for (unsigned long r = 0; r < size; r++)
+    for (unsigned long c = 0; c < size; c++)
+      if (c + r + 1 == size)
+        ret[r][c] = mat[r][c];
+
+  return ret;
+}
+
+template <typename M>
+M trace(const matrix<M> &mat) {
+  M sum = 0;
+
+  const unsigned long size = mat.size();
+
+  for (unsigned long r = 0; r < size; r++)
+    for (unsigned long c = 0; c < size; c++)
+      if (r == c)
+        sum += mat[r][c];
+
+  return sum;
+}
+
+template <typename M>
+matrix<M> scale(const M &s, const matrix<M> &mat) {
+  unsigned long
+    rows = mat.size(),
+    columns = mat[0].size();
+
+  matrix<M> ret(rows, vector<M>(columns));
+
+  for (unsigned long r = 0; r < rows; r++)
+    for (unsigned long c = 0; c < columns; c++)
+      ret[r][c] = mat[r][c] * s;
 
   return ret;
 }
@@ -80,7 +256,7 @@ V sum(const std::vector<V> &vec) {
 template <class M>
 matrix<M> subtract(const matrix<M> &a, const matrix<M> &b) {
   unsigned long size = a.size();
-  matrix<M> ret(size, std::vector<M>(size));
+  matrix<M> ret(size, vector<M>(size));
 
   for (unsigned long r = 0; r < size; r++)
     for (unsigned long c = 0; c < size; c++)
@@ -95,7 +271,7 @@ matrix<M> transpose(const matrix<M> &mat) {
     rows = mat.size(),
     columns = mat[0].size();
 
-  matrix<M> ret(columns, std::vector<M>(rows));
+  matrix<M> ret(columns, vector<M>(rows));
 
   for (unsigned long r = 0; r < rows; r++)
     for (unsigned long c = 0; c < columns; c++)
@@ -107,7 +283,7 @@ matrix<M> transpose(const matrix<M> &mat) {
 template <class M>
 matrix<M> adjacency(const matrix<M> &laplacian) {
   unsigned long size = laplacian.size();
-  matrix<M> ret(size, std::vector<M>(size));
+  matrix<M> ret(size, vector<M>(size));
 
   for (unsigned long r = 0; r < size; r++)
     for (unsigned long c = 0; c < size; c++)
@@ -117,10 +293,10 @@ matrix<M> adjacency(const matrix<M> &laplacian) {
 }
 
 template <class M>
-matrix<M> adjacency(const std::vector<char> &nodes,
-                    const std::vector<std::vector<char>> &edges) {
+matrix<M> adjacency(const vector<char> &nodes,
+                    const vector<vector<char>> &edges) {
   unsigned long size = nodes.size();
-  matrix<M> ret(size, std::vector<M>(size, 0));
+  matrix<M> ret(size, vector<M>(size, 0));
 
   auto indexOf = [nodes](char e) {
     for (unsigned long i = 0; i < nodes.size(); i++) {
@@ -148,7 +324,7 @@ template <class M>
 matrix<M> complement(const matrix<M> &mat) {
   unsigned long size = mat.size();
 
-  matrix<M> ret(size, std::vector<M>(size));
+  matrix<M> ret(size, vector<M>(size));
 
   for (unsigned long r = 0; r < size; r++)
     for (unsigned long c = 0; c < size; c++)
@@ -160,7 +336,7 @@ matrix<M> complement(const matrix<M> &mat) {
 template <class M>
 matrix<M> degree(const matrix<M> &adjacency) {
   unsigned long size = adjacency.size();
-  matrix<M> ret(size, std::vector<M>(size, 0));
+  matrix<M> ret(size, vector<M>(size, 0));
 
   for (unsigned long r = 0; r < size; r++) {
     int sum = 0;
@@ -193,7 +369,7 @@ matrix<M> incidence(const matrix<M> &adjacency) {
     for (c = r; c < rows; c++)
       columns += (adjacency[r][c] != 0 ? 1 : 0);
 
-  matrix<M> ret(rows, std::vector<M>(columns, (M)0));
+  matrix<M> ret(rows, vector<M>(columns, (M)0));
 
   unsigned long i = 0;
 
@@ -235,7 +411,7 @@ matrix<M> fromGslMatrix(gsl_matrix * mat) {
     rows = mat->size1,
     columns = mat->size2;
 
-  matrix<M> ret(rows, std::vector<M>(columns));
+  matrix<M> ret(rows, vector<M>(columns));
 
   for (auto r = 0; r < rows; r++)
     for (auto c = 0; c < columns; c++)
@@ -245,7 +421,7 @@ matrix<M> fromGslMatrix(gsl_matrix * mat) {
 }
 
 template <class M>
-std::vector<gsl_complex> eigenvalues(const matrix<M> &mat) {
+vector<gsl_complex> eigenvalues(const matrix<M> &mat) {
   auto m = toGslMatrix(mat);
 
   auto ev = eigenvalues(m);
@@ -254,9 +430,9 @@ std::vector<gsl_complex> eigenvalues(const matrix<M> &mat) {
   return ev;
 }
 
-std::vector<gsl_complex> eigenvalues(gsl_matrix * m) {
+vector<gsl_complex> eigenvalues(gsl_matrix * m) {
   auto size = m->size1;
-  std::vector<gsl_complex> ret;
+  vector<gsl_complex> ret;
 
   auto eval = gsl_vector_complex_alloc(size);
   auto evec = gsl_matrix_complex_alloc(size, size);
@@ -271,11 +447,39 @@ std::vector<gsl_complex> eigenvalues(gsl_matrix * m) {
   gsl_vector_complex_free (eval);
   gsl_matrix_complex_free (evec);
 
-  std::sort(ret.begin(), ret.end(), [](auto l, auto r){
+  sort(ret.begin(), ret.end(), [](auto l, auto r){
     return GSL_REAL(l) < GSL_REAL(r);
   });
 
   return ret;
+}
+
+template <class M>
+double determinant(const matrix<M> &mat) {
+  auto m = toGslMatrix(mat);
+
+  auto d = determinant(m);
+  gsl_matrix_free(m);
+
+  return d;
+}
+
+double determinant(gsl_matrix * m) {
+  double d;
+  int signum;
+
+  gsl_permutation * p = gsl_permutation_alloc(m->size1);
+
+  gsl_matrix * tmp = gsl_matrix_alloc(m->size1, m->size2);
+  gsl_matrix_memcpy(tmp, m);
+
+  gsl_linalg_LU_decomp(tmp, p, &signum);
+  d = gsl_linalg_LU_det(tmp, signum);
+
+  gsl_permutation_free(p);
+  gsl_matrix_free(tmp);
+
+  return d;
 }
 
 template <class M>
@@ -295,18 +499,18 @@ bool hasEulerCircuit(const matrix<M> &mat) {
 }
 
 template <class M>
-std::vector<int> eulerCircuit(const matrix<M> &adjacency) {
+vector<int> eulerCircuit(const matrix<M> &adjacency) {
   if (!hasEulerCircuit(adjacency)) { return {}; }
 
   matrix<M> i = incidence(adjacency);
 
-  std::vector<int> ret;
+  vector<int> ret;
 
   unsigned long
     rows = i.size(),
     columns = i[1].size();
 
-  matrix<M> zero(rows, std::vector<M>(columns, (M)0));
+  matrix<M> zero(rows, vector<M>(columns, (M)0));
 
   for (unsigned long r = 0; r < rows; r++) {
     for (unsigned long c = 0; c < columns; c++) {
@@ -340,3 +544,5 @@ bool isSymmetric(const matrix<M> &mat) {
 
   return true;
 }
+
+

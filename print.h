@@ -26,12 +26,12 @@ template <class V>
 void print(const V &value);
 
 template <class V>
-void print(const std::vector<V> &vec);
+void print(const vector<V> &vec);
 
 template <class M>
 void print(const matrix<M> &mat);
 
-void print(const std::vector<gsl_complex> &vec);
+void print(const vector<gsl_complex> &vec);
 
 template <class V>
 void println(const V &value);
@@ -44,7 +44,7 @@ void print(const V &value) {
 }
 
 template <class V>
-void print(const std::vector<V> &vec) {
+void print(const vector<V> &vec) {
   unsigned long size = vec.size();
   print("<");
   for (unsigned long i = 0; i < size; i++) {
@@ -74,7 +74,7 @@ void print(const matrix<M> &mat) {
   }
 }
 
-void print(const std::vector<gsl_complex> &vec) {
+void print(const vector<gsl_complex> &vec) {
   std::cout << "EigenValues" << std::endl;
   for (unsigned long i = 0; i < vec.size(); i++) {
     std::cout << "\u03BB" << i + 1

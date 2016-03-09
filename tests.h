@@ -105,7 +105,7 @@ void testEulerCircuit() {
 
   expect(
     "euler circuit",
-    (std::vector<int>){0, 1, 2, 3, 4, 2, 0},
+    (vector<int>){0, 1, 2, 3, 4, 2, 0},
     [=](){ return eulerCircuit(a); }
   );
 }
