@@ -6,7 +6,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_vector.h>
-#include <algorithm>
+#include <utility>
 
 template <class M>
 using matrix = std::vector< std::vector< M > >;
@@ -22,6 +22,10 @@ matrix<M> transpose(const matrix<M> &mat);
 
 template <class M>
 matrix<M> adjacency(const matrix<M> &laplacian);
+
+template <class M>
+matrix<M> adjacency(const std::vector<char> &nodes,
+                    const std::vector<std::vector<char>> &edges);
 
 template <class M>
 matrix<M> complement(const matrix<M> &mat);
@@ -113,6 +117,34 @@ matrix<M> adjacency(const matrix<M> &laplacian) {
 }
 
 template <class M>
+matrix<M> adjacency(const std::vector<char> &nodes,
+                    const std::vector<std::vector<char>> &edges) {
+  unsigned long size = nodes.size();
+  matrix<M> ret(size, std::vector<M>(size, 0));
+
+  auto indexOf = [nodes](char e) {
+    for (unsigned long i = 0; i < nodes.size(); i++) {
+      if (e == nodes[i]) { return i; }
+    }
+
+    return (unsigned long)-1;
+  };
+
+  for (auto &p : edges) {
+    unsigned long
+      x = indexOf(p[0]),
+      y = indexOf(p[1]);
+
+    if (x == -1 || y == -1) { continue; }
+
+    ret[x][y] = ret[y][x] = (M)1;
+  }
+
+  return ret;
+}
+
+
+template <class M>
 matrix<M> complement(const matrix<M> &mat) {
   unsigned long size = mat.size();
 
@@ -120,7 +152,7 @@ matrix<M> complement(const matrix<M> &mat) {
 
   for (unsigned long r = 0; r < size; r++)
     for (unsigned long c = 0; c < size; c++)
-      ret[r][c] = !mat[r][c];
+      ret[r][c] = r == c ? (M)0 : !mat[r][c];
 
   return ret;
 }
