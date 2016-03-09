@@ -1,3 +1,7 @@
+/* file: print.h
+ *  description: provides utitlies for viewing a variety of data structures
+ */
+
 #pragma once
 
 #include <iostream>
@@ -33,6 +37,10 @@ void print(const matrix<M> &mat);
 
 void print(const vector<gsl_complex> &vec);
 
+void print(const map<string, vector<double>> &vecs);
+
+void print(const map<string, matrix<double>> &mats);
+
 template <class V>
 void println(const V &value);
 
@@ -40,7 +48,7 @@ void newline(unsigned long times = 1);
 
 template <class V>
 void print(const V &value) {
-  std::cout << value;
+  cout << value;
 }
 
 template <class V>
@@ -75,11 +83,26 @@ void print(const matrix<M> &mat) {
 }
 
 void print(const vector<gsl_complex> &vec) {
-  std::cout << "EigenValues" << std::endl;
+  cout << "EigenValues" << endl;
   for (unsigned long i = 0; i < vec.size(); i++) {
-    std::cout << "\u03BB" << i + 1
+    cout << "\u03BB" << i + 1
     << " = " << GSL_REAL(vec[i])
-    << " + " << GSL_IMAG(vec[i]) << "i" << std::endl;
+    << " + " << GSL_IMAG(vec[i]) << "i" << endl;
+  }
+}
+
+void print(const map<string, vector<double>> &vecs) {
+  for (auto &v : vecs) {
+    cout << v.first << " = ";
+    println(v.second);
+  }
+}
+
+void print(const map<string, matrix<double>> &mats) {
+  for (auto &m : mats) {
+    cout << m.first << endl;
+    println(m.second);
+    newline();
   }
 }
 
@@ -91,7 +114,7 @@ void println(const V &value) {
 
 void newline(unsigned long times) {
   for (unsigned long i = 0; i < times; i++) {
-    std::cout << std::endl;
+    cout << endl;
   }
 }
 

@@ -1,3 +1,7 @@
+/* file: problems.h
+ * description: working through the problems for exam 4
+ */
+
 #pragma once
 
 #include "linear.h"
@@ -21,11 +25,11 @@ void problem1() {
     ,{0, 0, 1, 0, 0, 1, 0, 1}
     ,{0, 1, 0, 1, 1, 1, 1, 0}};
 
-  std::cout << "Adjacency" << std::endl;
+  cout << "Adjacency" << endl;
   println(a);
   newline();
 
-  std::cout << "Laplacian" << std::endl;
+  cout << "Laplacian" << endl;
   auto l = laplacian(a);
   println(l);
   newline();
@@ -48,22 +52,22 @@ void problem2() {
     ,{1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0}
     ,{1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0}};
 
-  std::cout << "Symmetric = ";
+  cout << "Symmetric = ";
   println(isSymmetric(a) ? "true" : "false");
 
   newline();
 
-  std::cout << "Degree" << std::endl;
+  cout << "Degree" << endl;
   println(degree(a));
 
   newline();
 
-  std::cout << "Laplacian" << std::endl;
+  cout << "Laplacian" << endl;
   println(laplacian(a));
 
   newline();
 
-  std::cout << "Euler Circuit Exists = ";
+  cout << "Euler Circuit Exists = ";
   println(hasEulerCircuit<double>(a) ? "true" : "false");
 }
 
@@ -83,14 +87,14 @@ void problem3() {
     };
 
   auto l = laplacian(a);
-  std::cout << "Laplacian" << std::endl;
+  cout << "Laplacian" << endl;
   println(l);
 
   newline();
 
   println(eigenvalues(l));
 
-  std::cout << "Algebraic Connectivity = ";
+  cout << "Algebraic Connectivity = ";
   println(algebraicConnectivity(l, false));
 }
 
@@ -108,18 +112,18 @@ void problem4() {
     ,{-1, -1, 0,  0,  0,  0, -1,  0,  0,  3}};
 
   auto a = adjacency(l);
-  std::cout << "Adjacency" << std::endl;
+  cout << "Adjacency" << endl;
   println(a);
 
   newline();
 
   auto c = complement(a);
-  std::cout << "Complement" << std::endl;
+  cout << "Complement" << endl;
   println(c);
 
   newline();
 
-  std::cout << "Algebraic Connectivity = ";
+  cout << "Algebraic Connectivity = ";
   println(algebraicConnectivity(c));
 }
 
@@ -138,28 +142,28 @@ void problem5() {
 
 
   auto a = adjacency(l);
-  std::cout << "Adjacency" << std::endl;
+  cout << "Adjacency" << endl;
   println(a);
 
   newline();
 
   auto c = complement(a);
-  std::cout << "Complement" << std::endl;
+  cout << "Complement" << endl;
   println(c);
 
   newline();
 
-  std::cout << "Algebraic Connectivity = ";
+  cout << "Algebraic Connectivity = ";
   println(algebraicConnectivity(c));
 
   newline();
 
-  std::cout << "Euler Circuit Exists = ";
+  cout << "Euler Circuit Exists = ";
   println(hasEulerCircuit(c) ? "true" : "false");
 
   newline();
 
-  std::cout << "Degree" << std::endl;
+  cout << "Degree" << endl;
   println(degree(c));
 }
 
@@ -178,12 +182,12 @@ void problem6() {
     ,{0,0,0,1,0,0,1,1,0,1,0}};
 
   auto c = complement(a);
-  std::cout << "Complement" << std::endl;
+  cout << "Complement" << endl;
   println(c);
 
   newline();
 
-  std::cout << "Algebraic Connectivity = ";
+  cout << "Algebraic Connectivity = ";
   println(algebraicConnectivity(c));
 }
 

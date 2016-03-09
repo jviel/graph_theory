@@ -1,3 +1,7 @@
+/* file: linear.h
+ * description: provides functions for doing linear algebra operations
+ */
+
 #pragma once
 
 #include <vector>
@@ -8,11 +12,10 @@
 #include <gsl/gsl_vector.h>
 #include <utility>
 
-template <class M>
-using matrix = std::vector< std::vector< M > >;
+using namespace std;
 
-template <class V>
-using vector = std::vector<V>;
+template <class M>
+using matrix = vector<vector<M>>;
 
 template <typename V>
 V dot(const vector<V> &as, const vector<V> &bs);

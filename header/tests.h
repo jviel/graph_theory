@@ -1,3 +1,8 @@
+/* file: tests.h
+ * description: contains the tests for the program to make sure it works as
+ *              expected
+ */
+
 #pragma once
 
 #include "testing.h"
@@ -18,7 +23,7 @@ void runTests() {
 }
 
 void testDegreeMatrix() {
-  expect(
+  testing::expect(
     "degree matrix 1",
     (matrix<int>)
     {{2, 0, 0, 0}
@@ -32,7 +37,7 @@ void testDegreeMatrix() {
     ,{0, 1, 1, 0}});}
   );
 
-  expect(
+  testing::expect(
     "degree matrix 2",
     (matrix<int>)
     {{1, 0, 0, 0}
@@ -48,7 +53,7 @@ void testDegreeMatrix() {
 }
 
 void testLaplacianMatrix() {
-  expect(
+  testing::expect(
     "laplacian matrix",
     (matrix<int>)
     {{2, -1, -1, 0}
@@ -64,7 +69,7 @@ void testLaplacianMatrix() {
 }
 
 void testAlgebraicConnectivity() {
-  expect(
+  testing::expect(
     "algebraic connectivity",
     0.722,
     [](){ return algebraicConnectivity<double>(
@@ -79,7 +84,7 @@ void testAlgebraicConnectivity() {
 }
 
 void testIncidenceMatrix() {
-  expect(
+  testing::expect(
     "incidence matrix",
     (matrix<int>)
     {{1, 1, 1, 0}
@@ -103,7 +108,7 @@ void testEulerCircuit() {
     ,{0, 0, 1, 0, 1}
     ,{0, 0, 1, 1, 0}};
 
-  expect(
+  testing::expect(
     "euler circuit",
     (vector<int>){0, 1, 2, 3, 4, 2, 0},
     [=](){ return eulerCircuit(a); }
