@@ -160,11 +160,15 @@ matrix<M> complement(const matrix<M> &mat) {
 template <class M>
 matrix<M> degree(const matrix<M> &adjacency) {
   unsigned long size = adjacency.size();
-  matrix<M> ret(size, std::vector<M>(size));
+  matrix<M> ret(size, std::vector<M>(size, 0));
 
-  for (unsigned long r = 0; r < size; r++)
+  for (unsigned long r = 0; r < size; r++) {
+    int sum = 0;
     for (unsigned long c = 0; c < size; c++)
-      ret[r][c] = r != c ? (M)0 : sum(adjacency[r]);
+      if (adjacency[r][c] != 0) { sum += 1; }
+
+    ret[r][r] = sum;
+  }
 
   return ret;
 }
