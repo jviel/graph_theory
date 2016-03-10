@@ -5,6 +5,8 @@
 #include "header/ui.h"
 
 int main() {
+  ui::launch();
+  return 0;
   matrix<double> a =
     {{0, 5, 3, 0, 0}
     ,{5, 0, 2, 0, 0}

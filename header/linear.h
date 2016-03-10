@@ -12,40 +12,53 @@
 #include <gsl/gsl_vector.h>
 #include <utility>
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
 template <class M>
 using matrix = vector<vector<M>>;
 
-template <typename V>
+template <class V>
+double magnitude(const vector<V> &v);
+
+template <class V>
 V dot(const vector<V> &as, const vector<V> &bs);
 
-template <typename M>
+template <class V>
+vector<V> scale(const V s, const vector<V> &vec);
+
+template <class M>
 matrix<M> lower(const matrix<M> &mat);
 
-template <typename M>
+template <class M>
 matrix<M> upper(const matrix<M> &mat);
 
-template <typename M>
+template <class M>
 vector<M> column(const unsigned long &c, const matrix<M> &mat);
 
-template <typename M>
+template <class M>
+matrix<M> innerProduct(const vector<M> &a, const matrix<M> &b);
+
+template <class M>
+matrix<M> innerProduct(const matrix<M> &a, const vector<M> &b);
+
+template <class M>
 matrix<M> innerProduct(const matrix<M> &a, const matrix<M> &b);
 
-template <typename M>
+template <class M>
 matrix<M> outerProduct(const matrix<M> &a, const matrix<M> &b);
 
-template <typename M>
+template <class M>
 matrix<M> diagonal(const matrix<M> &mat);
 
-template <typename M>
+template <class M>
 matrix<M> minorDiagonal(const matrix<M> &mat);
 
-template <typename M>
+template <class M>
 M trace(const matrix<M> &mat);
 
-template <typename M>
+template <class M>
 matrix<M> scale(const M &s, const matrix<M> &mat);
 
 template <class M>
@@ -109,6 +122,18 @@ template <class M>
 M costOfRoute(const matrix<M> &adjacency, const vector<pair<int,int>> &path);
 
 template <class M>
+gsl_complex spectralGap(const matrix<M> &mat, bool adjacency = true);
+
+template <class M>
+gsl_complex spectralRadius(const matrix<M> &adjacency);
+
+template <class M>
+unsigned long connectedComponents(const matrix<M> &mat, bool adjacency = true);
+
+template <class M>
+unsigned long numSpanningTrees(const matrix<M> &mat, bool adjacency = true);
+
+template <class M>
 bool isSymmetric(const matrix<M> &mat);
 
 template <class M>
@@ -117,8 +142,21 @@ bool isSquare(const matrix<M> &mat);
 template <class M>
 bool isJagged(const matrix<M> &mat);
 
-template <typename V>
+template <class V>
+double magnitude(const vector<V> &v) {
+  double sum = 0;
+
+  for (unsigned long i = 0; i < v.size(); i++)
+    sum += pow((double)v[i], 2);
+
+  return sqrt(sum);
+}
+
+template <class V>
 V dot(const vector<V> &as, const vector<V> &bs) {
+  if (as.size() != bs.size())
+    throw invalid_argument("Vectors must have the same dimensions");
+
   V ret = 0;
   for (unsigned long i = 0; i < as.size(); i++)
     ret += (as[i] * bs[i]);
@@ -126,8 +164,24 @@ V dot(const vector<V> &as, const vector<V> &bs) {
   return ret;
 }
 
-template <typename M>
+template <class V>
+vector<V> scale(const V s, const vector<V> &vec) {
+  vector<V> ret;
+
+  for (unsigned long i = 0; i < vec.size(); i++)
+    ret.push_back(vec[i] * s);
+
+  return ret;
+}
+
+template <class M>
 matrix<M> lower(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
   const unsigned long size = mat.size();
 
   matrix<M> ret(size, vector<M>(size));
@@ -139,8 +193,14 @@ matrix<M> lower(const matrix<M> &mat) {
   return ret;
 }
 
-template <typename M>
+template <class M>
 matrix<M> upper(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
   const unsigned long size = mat.size();
 
   matrix<M> ret(size, vector<M>(size));
@@ -152,8 +212,11 @@ matrix<M> upper(const matrix<M> &mat) {
   return ret;
 }
 
-template <typename M>
+template <class M>
 vector<M> column(const unsigned long &c, const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
   unsigned long rows = mat.size();
 
   vector<M> ret;
@@ -164,8 +227,24 @@ vector<M> column(const unsigned long &c, const matrix<M> &mat) {
   return ret;
 }
 
-template <typename M>
+template <class M>
+matrix<M> innerProduct(const vector<M> &a, const matrix<M> &b) {
+  return innerProduct({a}, b);
+}
+
+template <class M>
+matrix<M> innerProduct(const matrix<M> &a, const vector<M> &b) {
+  return innerProduct(a, transpose({b}));
+}
+
+template <class M>
 matrix<M> innerProduct(const matrix<M> &a, const matrix<M> &b) {
+  if (isJagged(a) || isJagged(b))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (a[0].size() != b.size())
+    throw invalid_argument("Invalid matrix dimensions");
+
   const unsigned long
     rows = a.size(),
     columns = b[0].size();
@@ -179,8 +258,11 @@ matrix<M> innerProduct(const matrix<M> &a, const matrix<M> &b) {
   return ret;
 }
 
-template <typename M>
+template <class M>
 matrix<M> outerProduct(const matrix<M> &a, const matrix<M> &b) {
+  if (isJagged(a) || isJagged(b))
+    throw invalid_argument("Matrix cannot be jagged");
+
   const unsigned long
     aRows = a.size(),
     aColumns = a[0].size(),
@@ -214,8 +296,14 @@ matrix<M> outerProduct(const matrix<M> &a, const matrix<M> &b) {
   return ret;
 }
 
-template <typename M>
+template <class M>
 matrix<M> diagonal(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
   const unsigned long size = mat.size();
 
   matrix<M> ret(size, vector<M>(size, (M)0));
@@ -226,8 +314,14 @@ matrix<M> diagonal(const matrix<M> &mat) {
   return ret;
 }
 
-template <typename M>
+template <class M>
 matrix<M> minorDiagonal(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
   const unsigned long size = mat.size();
 
   matrix<M> ret(size, vector<M>(size, 0));
@@ -240,8 +334,14 @@ matrix<M> minorDiagonal(const matrix<M> &mat) {
   return ret;
 }
 
-template <typename M>
+template <class M>
 M trace(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
   M sum = 0;
 
   const unsigned long size = mat.size();
@@ -254,8 +354,11 @@ M trace(const matrix<M> &mat) {
   return sum;
 }
 
-template <typename M>
+template <class M>
 matrix<M> scale(const M &s, const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
   unsigned long
     rows = mat.size(),
     columns = mat[0].size();
@@ -271,6 +374,12 @@ matrix<M> scale(const M &s, const matrix<M> &mat) {
 
 template <class M>
 matrix<M> subtract(const matrix<M> &a, const matrix<M> &b) {
+  if (isJagged(a) || isJagged(b))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (a.size() != b.size() || a[0].size() != b[0].size())
+    throw invalid_argument("Matrices are not the same size");
+
   unsigned long size = a.size();
   matrix<M> ret(size, vector<M>(size));
 
@@ -283,6 +392,9 @@ matrix<M> subtract(const matrix<M> &a, const matrix<M> &b) {
 
 template <class M>
 matrix<M> transpose(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
   unsigned long
     rows = mat.size(),
     columns = mat[0].size();
@@ -298,6 +410,9 @@ matrix<M> transpose(const matrix<M> &mat) {
 
 template <class M>
 matrix<M> adjacency(const matrix<M> &laplacian) {
+  if (isJagged(laplacian))
+    throw invalid_argument("Matrix cannot be jagged");
+
   unsigned long size = laplacian.size();
   matrix<M> ret(size, vector<M>(size));
 
@@ -338,6 +453,9 @@ matrix<M> adjacency(const vector<char> &nodes,
 
 template <class M>
 matrix<M> complement(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
   unsigned long size = mat.size();
 
   matrix<M> ret(size, vector<M>(size));
@@ -351,6 +469,12 @@ matrix<M> complement(const matrix<M> &mat) {
 
 template <class M>
 matrix<M> degree(const matrix<M> &adjacency) {
+  if (isJagged(adjacency))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency))
+    throw invalid_argument("Matrix must be square");
+
   unsigned long size = adjacency.size();
   matrix<M> ret(size, vector<M>(size, 0));
 
@@ -367,6 +491,12 @@ matrix<M> degree(const matrix<M> &adjacency) {
 
 template <class M>
 matrix<M> laplacian(const matrix<M> &adjacency, const matrix<M> &degree) {
+  if (isJagged(adjacency) || isJagged(degree))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency) || !isSquare(degree))
+    throw invalid_argument("Matrix must be square");
+
   return subtract(adjacency, degree);
 }
 
@@ -377,6 +507,12 @@ matrix<M> laplacian(const matrix<M> &adjacency) {
 
 template <class M>
 matrix<M> incidence(const matrix<M> &adjacency) {
+  if (isJagged(adjacency))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency))
+    throw invalid_argument("Matrix must be square");
+
   unsigned long
     rows = adjacency.size(), r = 0,
     columns = 0, c = 0;
@@ -403,11 +539,20 @@ matrix<M> incidence(const matrix<M> &adjacency) {
 
 template <class M>
 M algebraicConnectivity(const matrix<M> &mat, bool adjacency) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (adjacency && !isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
   return GSL_REAL(eigenvalues(adjacency ? laplacian(mat) : mat)[1]);
 }
 
 template <class M>
 gsl_matrix * toGslMatrix(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
   const unsigned long
     rows = mat.size(),
     columns = mat[0].size();
@@ -438,6 +583,9 @@ matrix<M> fromGslMatrix(gsl_matrix * mat) {
 
 template <class M>
 vector<gsl_complex> eigenvalues(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
   auto m = toGslMatrix(mat);
 
   auto ev = eigenvalues(m);
@@ -472,6 +620,9 @@ vector<gsl_complex> eigenvalues(gsl_matrix * m) {
 
 template <class M>
 double determinant(const matrix<M> &mat) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
   auto m = toGslMatrix(mat);
 
   auto d = determinant(m);
@@ -500,6 +651,12 @@ double determinant(gsl_matrix * m) {
 
 template <class M>
 bool connected(const matrix<M> &mat, bool adjacency) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (adjacency && !isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
   return algebraicConnectivity(mat, adjacency) > 0;
 }
 
@@ -516,6 +673,12 @@ bool hasEulerCircuit(const matrix<M> &mat) {
 
 template <class M>
 vector<int> eulerCircuit(const matrix<M> &adjacency) {
+  if (isJagged(adjacency))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency))
+    throw invalid_argument("Matrix must be square");
+
   unsigned long aSize = adjacency.size();
   matrix<M> a(aSize, vector<M>(aSize, (M)0));
 
@@ -562,6 +725,15 @@ vector<int> eulerCircuit(const matrix<M> &adjacency) {
 
 template <class M>
 vector<pair<int,int>> minimalSpanningTree(const matrix<M> &adjacency) {
+  if (isJagged(adjacency))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency))
+    throw invalid_argument("Matrix must be square");
+
+  if (numSpanningTrees(adjacency) == 0)
+    return {};
+
   unsigned long aSize = adjacency.size();
   vector<pair<int,int>> ret;
 
@@ -607,12 +779,99 @@ vector<pair<int,int>> minimalSpanningTree(const matrix<M> &adjacency) {
 
 template <class M>
 M costOfRoute(const matrix<M> &adjacency, const vector<pair<int,int>> &path) {
+  if (isJagged(adjacency))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency))
+    throw invalid_argument("Matrix must be square");
+
   M cost = 0;
 
   for (auto &p : path)
     cost += adjacency[p.first][p.second];
 
   return cost;
+}
+
+template <class M>
+gsl_complex spectralGap(const matrix<M> &mat, bool adjacency) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (adjacency && !isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
+  for (auto &ev : eigenvalues(adjacency ? laplacian(mat) : mat))
+    if (GSL_REAL(ev) > 0)
+      return ev;
+
+  throw invalid_argument("No non zero eigenvalue");
+}
+
+template <class M>
+gsl_complex spectralRadius(const matrix<M> &adjacency) {
+  if (isJagged(adjacency))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency))
+    throw invalid_argument("Matrix must be square");
+
+  auto ev = eigenvalues(adjacency);
+
+  gsl_complex last = ev[ev.size() - 1];
+
+  if (GSL_REAL(last) > 0)
+    return last;
+
+  throw invalid_argument("No non zero eigenvalue");
+}
+
+template <class M>
+unsigned long connectedComponents(const matrix<M> &mat, bool adjacency) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (adjacency && !isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
+  unsigned long count = 0;
+
+  for (auto &ev : eigenvalues(adjacency ? laplacian(mat) : mat))
+    if (GSL_REAL(ev) == 0)
+      count++;
+
+  return count;
+}
+
+template <class M>
+unsigned long numSpanningTrees(const matrix<M> &mat, bool adjacency) {
+  if (isJagged(mat))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (adjacency && !isSquare(mat))
+    throw invalid_argument("Matrix must be square");
+
+  unsigned long size = mat.size();
+  matrix<M> a(size, vector<M>(size, (M)0));
+  if (adjacency) {
+    for (unsigned long r = 0; r < size; r++)
+      for (unsigned long c = 0; c < size; c++)
+        a[r][c] = mat[r][c] == 0 ? 0 : 1;
+  }
+
+  auto evs = eigenvalues(adjacency ? laplacian(a) : mat);
+
+  if (GSL_REAL(evs[1]) < 0)
+    return 0;
+
+  double product = 1;
+  for (unsigned long i = 2; i < evs.size(); i++) {
+    product *= GSL_REAL(evs[i]);
+  }
+
+  double oneOverN =  ((double)1 / (double)evs.size());
+
+  return oneOverN * product;
 }
 
 template <class M>
@@ -636,7 +895,7 @@ bool isJagged(const matrix<M> &mat) {
 
   for (auto &v : mat)
     if (v.size() != size)
-      return false;
+      return true;
 
-  return true;
+  return false;
 }

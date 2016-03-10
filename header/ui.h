@@ -31,6 +31,7 @@ namespace ui {
   void createVector(const map<string, vector<double>> &vecs);
   void readVectors(const map<string, vector<double>> &vecs);
   void updateVector(const map<string, vector<double>> &vecs);
+  void deleteVector(const map<string, vector<double>> &vecs);
 
   void matrices();
   void operations();
@@ -56,7 +57,7 @@ namespace ui {
         case 1: vectors(); break;
         case 2: matrices(); break;
         case 3: operations(); break;
-        case 4: quit = true; break;
+        default: quit = true; break;
       }
     }
   }
@@ -103,7 +104,8 @@ namespace ui {
       {menuItem("Create", {'C'}, 1)
       ,menuItem("Read", {'R'}, 2)
       ,menuItem("Update", {'U'}, 3)
-      ,menuItem("Destroy", {'D'}, 4)}
+      ,menuItem("Delete", {'D'}, 4)
+      ,menuItem("Back", {'B'}, 5)}
     );
 
     auto vecs = file::readVectors();
@@ -112,6 +114,8 @@ namespace ui {
       case 1: createVector(vecs); break;
       case 2: readVectors(vecs); break;
       case 3: updateVector(vecs); break;
+      case 4: deleteVector(vecs); break;
+      default: break;
     }
   }
 
@@ -180,6 +184,36 @@ namespace ui {
     auto elements = getVector("Elements");
 
     file::updateVector(name, elements);
+  }
+
+  void deleteVector(const map<string, vector<double>> &vecs) {
+    newline(100);
+    cout << "=== Delete ===" << endl;
+
+    if (vecs.size() == 0) {
+      cout << "No vectors in memory, press any key to return...";
+      cin.get();
+      return;
+    }
+
+    cout << "Available vectors ";
+    for (auto &v : vecs) { cout << " | " << v.first; }
+    cout << endl;
+    string name = "";
+    bool success = false;
+
+    while (!success) {
+      name = getString("Name");
+
+      for (auto &v : vecs)
+        if (v.first == name)
+          success = true;
+
+      if (!success)
+        cout << "No vector by that name exists, try again" << endl;
+    }
+
+    file::deleteVector(name);
   }
 
   void matrices() {

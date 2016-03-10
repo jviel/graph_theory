@@ -20,14 +20,14 @@ namespace file {
   map<string,vector<double>> readVectors();
   vector<double> readVector(string name);
   bool updateVector(string name, vector<double> vec);
-  bool destroyVector(string name);
+  bool deleteVector(string name);
   bool replaceAllVectors(map<string,vector<double>> vecs);
 
   bool createMatrix(string name, matrix<double> mat);
   map<string,matrix<double>> readMatrices();
   matrix<double> readMatrix(string name);
   bool updateMatrix(string name, matrix<double> mat);
-  bool destroyMatrix(string name);
+  bool deleteMatrix(string name);
   bool replaceAllMatrices(map<string,matrix<double>> mats);
 
   bool createVector(string name, vector<double> vec) {
@@ -101,7 +101,7 @@ namespace file {
     return false;
   }
 
-  bool destroyVector(string name) {
+  bool deleteVector(string name) {
     auto vecs = readVectors();
 
     vecs.erase(name);
@@ -211,7 +211,7 @@ namespace file {
     return false;
   }
 
-  bool destroyMatrix(string name) {
+  bool deleteMatrix(string name) {
     auto mats = readMatrices();
 
     mats.erase(name);
