@@ -23,7 +23,7 @@ struct graph {
                        *deg,      // degree matrix
                        *inc;      // incidence matrix
     gsl_vector_complex *evals;    // eigenvalues of Laplacian matrix
-    double             algCon;
+    gsl_complex        algCon;
 
     // default constructor
     graph( int nodes = 0, int edges = 0){
@@ -96,11 +96,13 @@ bool MatrixEigen( const matrix * mat, gsl_vector_complex *& eval )
 {
     bool ret = true;
     int sz = mat->size1;
-    gsl_eigen_nonsymm_workspace *ws = gsl_eigen_nonsymm_alloc( sz );
-//    gsl_matrix_view mv = gsl_matrix_view_array( mat->data, sz, sz );
+    matrix matCopy = *gsl_matrix_alloc(sz,sz);
+    gsl_matrix_memcpy( &matCopy, mat );
+    gsl_eigen_nonsymmv_workspace *ws = gsl_eigen_nonsymmv_alloc( sz );
+    gsl_matrix_view mv = gsl_matrix_view_array( matCopy.data, sz, sz );
     eval = gsl_vector_complex_alloc( sz );
-    gsl_eigen_nonsymm( &mv.matrix, eval, ws );
     gsl_matrix_complex *evec = gsl_matrix_complex_calloc( sz, sz );
+    gsl_eigen_nonsymmv( &mv.matrix, eval, evec, ws );
     gsl_eigen_nonsymmv_sort( eval, evec, GSL_EIGEN_SORT_ABS_ASC );
     gsl_complex algCon;
     for( int i=0; i<sz; ){
@@ -116,11 +118,13 @@ bool MatrixEigen( const matrix * mat, gsl_vector_complex *& eval )
             i++;
     }
     cout << endl << "Algebraic connectivity of A: " << GSL_REAL(algCon) << endl;
+    for( int i=0; i<eval->size; i++ )
+        cout << "lambda " << i << ": " << GSL_REAL(gsl_vector_complex_get(eval,i)) << endl;
     if( GSL_REAL(algCon) <= 0 ){
         cout << "A is not connected!" << endl;
         ret = false;
     }
-    gsl_eigen_nonsymm_free( ws );
+    gsl_eigen_nonsymmv_free( ws );
     return ret;
 }
 
@@ -209,7 +213,7 @@ void IncidenceMat( matrix * adjMat, matrix *& incMat )
 
 }
 
-bool EulerCircut( matrix & degMat, matrix *& incMat )
+bool EulerCircuit( matrix & degMat, matrix *& incMat )
 {
     int rows = incMat->size1;
     int cols = incMat->size2;

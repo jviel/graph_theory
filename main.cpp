@@ -16,14 +16,16 @@ int main()
     return 0;
 }
 
+void doTests( graph & gr ); // receives a graph struct with adjacency matrix initialized
+
 void test1()
 {
     /*
-        A -- B
-        |  /  
-         C
-        |  \
-        D -- E
+        A - B
+         \ /  
+          C
+         / \
+        D - E
     */
     const int n = 5;
     graph graph1(n,n);
@@ -37,33 +39,23 @@ void test1()
 
     graph1.adj = gsl_matrix_alloc(n,n);
     graph1.adj->data = data1;
-    MatrixCompliment( graph1.adj, graph1.comp );
-    cout << "adjacency: " << endl; MatrixPrint( graph1.adj );
-    MatrixEigen( graph1.adj, graph1.evals );
-    IncidenceMat( graph1.adj, graph1.inc );
-    DegreeMat( graph1.adj, graph1.deg );
+    doTests( graph1 );
 }
 
 void test2()
 {
     const int n = 4;
-    graph graph1(n,n);
-    double data1[n*n] = {
+    graph graph2(n,n);
+    double data2[n*n] = {
      /* A B C D */
-        0,1,0,1, /*A*/
-        1,0,1,0, /*B*/
-        0,1,0,1, /*C*/
-        1,0,1,0, /*D*/};
+        0,1,1,0, /*A*/
+        1,0,0,1, /*B*/
+        1,0,0,1, /*C*/
+        0,1,1,0, /*D*/};
 
-    graph1.adj = gsl_matrix_alloc(n,n);
-    graph1.adj->data = data1;
-    MatrixCompliment( graph1.adj, graph1.comp );
-    cout << "adjacency: " << endl; MatrixPrint( graph1.adj );
-    MatrixEigen( graph1.adj, graph1.evals );
-    cout << "adj again: " << endl;
-    MatrixPrint( graph1.adj );
-    IncidenceMat( graph1.adj, graph1.inc );
-    DegreeMat( graph1.adj, graph1.deg );
+    graph2.adj = gsl_matrix_alloc(n,n);
+    graph2.adj->data = data2;
+    doTests( graph2 );
 }
 
 void test3()
@@ -78,7 +70,8 @@ void test5()
 void test6()
 {
     const int n = 11;
-    double graph6[n*n] = {
+    graph graph6(n,n);
+    double data6[n*n] = {
         0,1,0,1,1,0,1,0,0,0,0,
         1,0,1,0,0,0,0,1,0,1,0,
         0,1,0,1,0,1,0,0,0,0,0,
@@ -89,6 +82,23 @@ void test6()
         0,1,0,0,0,1,0,0,0,0,1,
         0,0,0,1,0,1,0,0,0,1,0,
         0,1,0,0,1,0,0,0,1,0,1,
-        0,0,0,1,0,0,1,1,0,1,0
-        };
+        0,0,0,1,0,0,1,1,0,1,0  };
+
+    graph6.adj = gsl_matrix_alloc(n,n);
+    graph6.adj->data = data6;
+    doTests( graph6 );
+}
+
+void doTests( graph & gr )
+{
+    MatrixCompliment( gr.adj, gr.comp );
+    DegreeMat( gr.adj, gr.deg );
+    Laplacian( gr.adj, gr.deg, gr.lap );
+    MatrixEigen( gr.lap, gr.evals );
+
+    // save algebraic connectivity to member variable of graph
+    GSL_SET_COMPLEX( &gr.algCon, GSL_REAL(gsl_vector_complex_get( gr.evals, 1 )), GSL_IMAG(gsl_vector_complex_get( gr.evals, 1 )));
+    
+    IncidenceMat( gr.adj, gr.inc );
+    EulerCircuit( *gr.deg, gr.inc );
 }
