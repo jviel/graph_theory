@@ -11,6 +11,7 @@
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_vector.h>
 #include <utility>
+#include <iostream>
 
 using namespace std;
 
@@ -102,7 +103,19 @@ template <class M>
 vector<int> eulerCircuit(const matrix<M> &adjacency);
 
 template <class M>
+vector<pair<int,int>> minimalSpanningTree(const matrix<M> &adjacency);
+
+template <class M>
+M costOfRoute(const matrix<M> &adjacency, const vector<pair<int,int>> &path);
+
+template <class M>
 bool isSymmetric(const matrix<M> &mat);
+
+template <class M>
+bool isSquare(const matrix<M> &mat);
+
+template <class M>
+bool isJagged(const matrix<M> &mat);
 
 template <typename V>
 V dot(const vector<V> &as, const vector<V> &bs) {
@@ -503,9 +516,17 @@ bool hasEulerCircuit(const matrix<M> &mat) {
 
 template <class M>
 vector<int> eulerCircuit(const matrix<M> &adjacency) {
-  if (!hasEulerCircuit(adjacency)) { return {}; }
+  unsigned long aSize = adjacency.size();
+  matrix<M> a(aSize, vector<M>(aSize, (M)0));
 
-  matrix<M> i = incidence(adjacency);
+  for (unsigned long r = 0; r < aSize; r++)
+    for (unsigned long c = 0; c < aSize; c++)
+      if (adjacency[r][c] != 0)
+        a[r][c] = 1;
+
+  if (!hasEulerCircuit(a)) { return {}; }
+
+  matrix<M> i = incidence(a);
 
   vector<int> ret;
 
@@ -517,11 +538,11 @@ vector<int> eulerCircuit(const matrix<M> &adjacency) {
 
   for (unsigned long r = 0; r < rows; r++) {
     for (unsigned long c = 0; c < columns; c++) {
-      if (i[r][c] == 1) {
+      if (i[r][c] != 0) {
         if (ret.size() == 0) { ret.push_back(r); }
 
         for (unsigned long j = 0; j < rows; j++) {
-          if (r == j || i[j][c] != 1) { continue; }
+          if (r == j || i[j][c] == 0) { continue; }
 
           i[r][c] = i[j][c] = 0;
           ret.push_back(j);
@@ -538,6 +559,62 @@ vector<int> eulerCircuit(const matrix<M> &adjacency) {
   return ret;
 }
 
+
+template <class M>
+vector<pair<int,int>> minimalSpanningTree(const matrix<M> &adjacency) {
+  unsigned long aSize = adjacency.size();
+  vector<pair<int,int>> ret;
+
+  matrix<M> zero(aSize, vector<M>(aSize, (M)0));
+
+  matrix<M> a(aSize, vector<M>(aSize, (M)0));
+  for (unsigned long r = 0; r < aSize; r++)
+    for (unsigned long c = r; c < aSize; c++)
+      a[r][c] = adjacency[r][c];
+
+  while (a != zero) {
+    unsigned long sr = 0, sc = 0;
+    M sw = 0;
+
+    for (unsigned long r = 0; r < aSize; r++) {
+      for (unsigned long c = r; c < aSize; c++) {
+        if (sw == 0 || (a[r][c] != 0 && a[r][c] < sw)) {
+          sw = a[r][c];
+          sr = r;
+          sc = c;
+        }
+      }
+    }
+
+    bool srIn = false;
+    bool scIn = false;
+    for (auto &p : ret) {
+      if (p.first == sr || p.second == sr)
+        srIn = true;
+
+      if (p.first == sc || p.second == sc)
+        scIn = true;
+    }
+
+    if (!srIn || !scIn)
+      ret.push_back(make_pair(sr, sc));
+
+    a[sr][sc] = 0;
+  }
+
+  return ret;
+};
+
+template <class M>
+M costOfRoute(const matrix<M> &adjacency, const vector<pair<int,int>> &path) {
+  M cost = 0;
+
+  for (auto &p : path)
+    cost += adjacency[p.first][p.second];
+
+  return cost;
+}
+
 template <class M>
 bool isSymmetric(const matrix<M> &mat) {
   for (unsigned long r = 0; r < mat.size(); r++)
@@ -548,4 +625,18 @@ bool isSymmetric(const matrix<M> &mat) {
   return true;
 }
 
+template <class M>
+bool isSquare(const matrix<M> &mat) {
+  return mat.size() == mat[0].size();
+}
 
+template <class M>
+bool isJagged(const matrix<M> &mat) {
+  unsigned long size = mat[0].size();
+
+  for (auto &v : mat)
+    if (v.size() != size)
+      return false;
+
+  return true;
+}

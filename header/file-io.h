@@ -18,12 +18,14 @@ namespace file {
 
   bool createVector(string name, vector<double> vec);
   map<string,vector<double>> readVectors();
+  vector<double> readVector(string name);
   bool updateVector(string name, vector<double> vec);
   bool destroyVector(string name);
   bool replaceAllVectors(map<string,vector<double>> vecs);
 
   bool createMatrix(string name, matrix<double> mat);
   map<string,matrix<double>> readMatrices();
+  matrix<double> readMatrix(string name);
   bool updateMatrix(string name, matrix<double> mat);
   bool destroyMatrix(string name);
   bool replaceAllMatrices(map<string,matrix<double>> mats);
@@ -81,6 +83,10 @@ namespace file {
     file.close();
     return ret;
   };
+
+  vector<double> readVector(string name) {
+    return readVectors()[name];
+  }
 
   bool updateVector(string name, vector<double> vec) {
     auto vecs = readVectors();
@@ -187,6 +193,10 @@ namespace file {
     file.close();
     return ret;
   };
+
+  matrix<double> readMatrix(string name) {
+    return readMatrices()[name];
+  }
 
   bool updateMatrix(string name, matrix<double> mat) {
     auto mats = readMatrices();

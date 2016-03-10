@@ -5,6 +5,7 @@
 #pragma once
 
 #include <iostream>
+#include <utility>
 
 #include "linear.h"
 
@@ -31,6 +32,9 @@ void print(const V &value);
 
 template <class V>
 void print(const vector<V> &vec);
+
+template <class A, class B>
+void print(const pair<A,B> &p);
 
 template <class M>
 void print(const matrix<M> &mat);
@@ -63,6 +67,15 @@ void print(const vector<V> &vec) {
   }
   print(">");
 }
+
+template <class A, class B>
+void print(const pair<A,B> &p) {
+  print("(");
+  print(p.first);
+  print(", ");
+  print(p.second);
+  print(")");
+};
 
 template <class M>
 void print(const matrix<M> &mat) {
