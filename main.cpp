@@ -11,7 +11,8 @@ int main()
 //    MatrixPrint( *lapA );
 //    if( !MatrixEigen( comp ));
 //        return -1;
-    test1();
+//    test1();
+    test2();
     return 0;
 }
 
@@ -19,36 +20,52 @@ void test1()
 {
     /*
         A -- B
-        |    |
-        |    |
-        D -- C
+        |  /  
+         C
+        |  \
+        D -- E
     */
-    matrix *comp, *incMat, *degMat;
-    gsl_matrix_view A;
-    const int n = 4;
-    double graph1[n*n] = {
-     /* A B C D */
-        0,1,1,1, /*A*/
-        1,0,1,1, /*B*/
-        1,1,0,1, /*C*/
-        1,1,1,0, /*D*/
-        };
-    A = gsl_matrix_view_array( graph1, n, n );
-    MatrixCompliment( A.matrix, comp );
-    cout << "adjacency: " << endl; MatrixPrint( A.matrix );
-    cout << "compliment:" << endl; MatrixPrint( *comp );
-//    MatrixEigen( comp );
-    IncidenceMat( A.matrix, incMat );
-    DegreeMat( A.matrix, degMat );
-    if( EulerCircut( *degMat, incMat ) )
-        cout << "Euler circuit passed!" << endl;
-    else
-        cout << "Euler circuit failed!" << endl;
+    const int n = 5;
+    graph graph1(n,n);
+    double data1[n*n] = {
+     /* A B C D E */
+        0,1,1,0,0, /*A*/
+        1,0,1,0,0, /*B*/
+        1,1,0,1,1, /*C*/
+        0,0,1,0,1, /*D*/
+        0,0,1,1,0, /*E*/ };
+
+    graph1.adj = gsl_matrix_alloc(n,n);
+    graph1.adj->data = data1;
+    MatrixCompliment( graph1.adj, graph1.comp );
+    cout << "adjacency: " << endl; MatrixPrint( graph1.adj );
+    MatrixEigen( graph1.adj, graph1.evals );
+    IncidenceMat( graph1.adj, graph1.inc );
+    DegreeMat( graph1.adj, graph1.deg );
 }
 
 void test2()
 {
+    const int n = 4;
+    graph graph1(n,n);
+    double data1[n*n] = {
+     /* A B C D */
+        0,1,0,1, /*A*/
+        1,0,1,0, /*B*/
+        0,1,0,1, /*C*/
+        1,0,1,0, /*D*/};
+
+    graph1.adj = gsl_matrix_alloc(n,n);
+    graph1.adj->data = data1;
+    MatrixCompliment( graph1.adj, graph1.comp );
+    cout << "adjacency: " << endl; MatrixPrint( graph1.adj );
+    MatrixEigen( graph1.adj, graph1.evals );
+    cout << "adj again: " << endl;
+    MatrixPrint( graph1.adj );
+    IncidenceMat( graph1.adj, graph1.inc );
+    DegreeMat( graph1.adj, graph1.deg );
 }
+
 void test3()
 {
 }
@@ -60,8 +77,6 @@ void test5()
 }
 void test6()
 {
-    matrix *comp;
-    gsl_matrix_view A;
     const int n = 11;
     double graph6[n*n] = {
         0,1,0,1,1,0,1,0,0,0,0,
@@ -76,6 +91,4 @@ void test6()
         0,1,0,0,1,0,0,0,1,0,1,
         0,0,0,1,0,0,1,1,0,1,0
         };
-    A = gsl_matrix_view_array( graph6, n, n );
-    MatrixCompliment( A.matrix, comp );
 }

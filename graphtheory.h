@@ -14,7 +14,36 @@ using namespace std;
 typedef gsl_matrix matrix;
 const static int MAX_MATRIX_SIZE = 1000;
 
-void MatrixGet( matrix & mat )
+struct graph {
+    unsigned int       numNodes,
+                       numEdges;
+    gsl_matrix         *adj,      // adjacency matrix
+                       *comp,     // complement matrix
+                       *lap,      // Laplacian matrix
+                       *deg,      // degree matrix
+                       *inc;      // incidence matrix
+    gsl_vector_complex *evals;    // eigenvalues of Laplacian matrix
+    double             algCon;
+
+    // default constructor
+    graph( int nodes = 0, int edges = 0){
+        adj = comp = lap = deg = inc = nullptr;
+        evals = nullptr;
+        numNodes = nodes;
+        numEdges = edges;
+    }
+    // destructor
+    ~graph(){
+        gsl_matrix_free( adj  );
+        gsl_matrix_free( comp );
+        gsl_matrix_free( lap  );
+        gsl_matrix_free( deg  );
+        gsl_matrix_free( inc  );
+        gsl_vector_complex_free( evals );
+    }
+};
+
+void MatrixGet( matrix *& mat )
 {
     int cols, rows=1, numElems=0;
     double tempArr[MAX_MATRIX_SIZE];
@@ -41,34 +70,35 @@ void MatrixGet( matrix & mat )
         rows++;
     }
     
-    mat = *gsl_matrix_alloc( rows, cols );
+    mat = gsl_matrix_alloc( rows, cols );
     double* cur = tempArr;
     for( int i=0; i<rows; i++ ){
         for( int j=0; j<cols; j++ )
-            gsl_matrix_set( &mat, i, j, *cur++);
+            gsl_matrix_set( mat, i, j, *cur++);
     }
 }
 
-void MatrixPrint( const matrix & mat )
+void MatrixPrint( const matrix * mat )
 {
-    int cols = mat.size2;
-    int rows = mat.size1;
+    int cols = mat->size2;
+    int rows = mat->size1;
    // cout << endl << "A is a " << rows << " x " << cols << " matrix" << endl << endl << fixed << setprecision(0);
     for( int i=0; i<rows; i++ ){
         cout << "   |";
         for( int j=0; j<cols; j++ )
-            cout << setw(3) << gsl_matrix_get( &mat, i, j );
+            cout << setw(3) << gsl_matrix_get( mat, i, j );
         cout << " |";
         cout <<  endl;
     }
 }
 
-bool MatrixEigen( matrix *& mat )
+bool MatrixEigen( const matrix * mat, gsl_vector_complex *& eval )
 {
+    bool ret = true;
     int sz = mat->size1;
     gsl_eigen_nonsymm_workspace *ws = gsl_eigen_nonsymm_alloc( sz );
-    gsl_matrix_view mv = gsl_matrix_view_array( mat->data, sz, sz );
-    gsl_vector_complex *eval = gsl_vector_complex_alloc( sz );
+//    gsl_matrix_view mv = gsl_matrix_view_array( mat->data, sz, sz );
+    eval = gsl_vector_complex_alloc( sz );
     gsl_eigen_nonsymm( &mv.matrix, eval, ws );
     gsl_matrix_complex *evec = gsl_matrix_complex_calloc( sz, sz );
     gsl_eigen_nonsymmv_sort( eval, evec, GSL_EIGEN_SORT_ABS_ASC );
@@ -85,58 +115,55 @@ bool MatrixEigen( matrix *& mat )
          else
             i++;
     }
-    if( GSL_REAL(algCon) > 0 )
-        cout << endl << "Algebraic connectivity of A: " << GSL_REAL(algCon) << endl;
-    else{
-        cout << endl << "A is not connected!" << endl;
-        return false;
+    cout << endl << "Algebraic connectivity of A: " << GSL_REAL(algCon) << endl;
+    if( GSL_REAL(algCon) <= 0 ){
+        cout << "A is not connected!" << endl;
+        ret = false;
     }
-    gsl_vector_complex_free( eval );
     gsl_eigen_nonsymm_free( ws );
-    return true;
+    return ret;
 }
 
-void DegreeMat( matrix & src, matrix *& dest )
+void DegreeMat( const matrix * src, matrix *& dest )
 {
     double rowsum;
-    int rows = src.size1;
-    int cols = src.size2;
+    int rows = src->size1;
+    int cols = src->size2;
     dest = gsl_matrix_calloc( rows, cols );
     for( int i=0; i<rows; i++ )
     {
         rowsum = 0;
         for( int j=0; j<cols; j++ )
-            rowsum += gsl_matrix_get(&src, i, j);
+            rowsum += gsl_matrix_get(src, i, j);
         gsl_matrix_set( dest, i, i, rowsum ); // sets diagonal entry
     }    
 }
 
-void Laplacian( matrix &mat, matrix *&lap )
+void Laplacian( const matrix * mat, matrix *& deg, matrix *& lap )
 {
-    int rows = mat.size1;
-    int cols = mat.size2;
-    matrix *deg = gsl_matrix_calloc( mat.size1, mat.size2 );
+    int rows = mat->size1;
+    int cols = mat->size2;
+    deg = gsl_matrix_calloc( rows, cols );
+    lap = gsl_matrix_alloc(  rows, cols );
     DegreeMat( mat, deg );
-    lap = gsl_matrix_alloc( mat.size1, mat.size2 );
-    gsl_matrix_memcpy( lap, deg ); // copy matrix otherwise mat will be changed
+    gsl_matrix_memcpy( lap, deg ); // copy matrix otherwise degree matrix will be changed
 
     for( int i=0; i<rows; i++ )
     {
         for( int j=0; j<cols; j++ ){
             if( i != j ){ // sets non-diagonal entries
-                if( gsl_matrix_get(&mat,i,j) == 0 )
+                if( gsl_matrix_get( mat,i,j) == 0 )
                     gsl_matrix_set( lap,i,j,0 );
                 else
-                    gsl_matrix_set( lap,i,j, (gsl_matrix_get(&mat,i,j) * -1) );
+                    gsl_matrix_set( lap,i,j, (gsl_matrix_get( mat,i,j) * -1) );
             }
         }
     }    
-    gsl_matrix_free( deg );
 }
 
-void MatrixCompliment( const matrix & src, matrix *& dest )
+void MatrixCompliment( const matrix * src, matrix *& dest )
 {
-    int size = src.size1;
+    int size = src->size1;
     dest = gsl_matrix_calloc( size, size );
     // set univ graph adjacency matrix to all 1s except for main diag.
     for( int i=0; i<size; i++ ){
@@ -145,15 +172,15 @@ void MatrixCompliment( const matrix & src, matrix *& dest )
                 gsl_matrix_set( dest,i,j,1 );
         }
     }
-    gsl_matrix_sub( dest, &src );
+    gsl_matrix_sub( dest, src );
 }
 
-void IncidenceMat( matrix & adjMat, matrix *& incMat )
+void IncidenceMat( matrix * adjMat, matrix *& incMat )
 {
-    int rows = adjMat.size1;
+    int rows = adjMat->size1;
     int cols = 0, curCel;
     matrix adjUpperTri = *gsl_matrix_alloc( rows, rows );
-    gsl_matrix_memcpy( &adjUpperTri, &adjMat );
+    gsl_matrix_memcpy( &adjUpperTri, adjMat );
 
     // create upper triangular matrix from adjMatrix, and count # edges
     for( int i=0; i<rows; i++ ){
@@ -200,7 +227,7 @@ bool EulerCircut( matrix & degMat, matrix *& incMat )
     gsl_matrix_memcpy( incMatCopy, incMat );
     int r=0, c=0, rowTries=0;
     cout << endl << "Incidence Matrix: " << endl;
-    MatrixPrint( *incMatCopy );
+    MatrixPrint( incMatCopy );
     string circuitString = "A"; 
     while( rowTries<=cols )
     {
@@ -217,7 +244,7 @@ bool EulerCircut( matrix & degMat, matrix *& incMat )
             circuitString += " -> ";
             circuitString += (char)(r+65);
             cout << endl << circuitString << endl;
-            MatrixPrint( *incMatCopy );
+            MatrixPrint( incMatCopy );
         }
         ++c %= cols; // wraps to first col
     }
