@@ -5,14 +5,12 @@
 
 int main()
 {
-//    matrix *lapA, *incA, *univ, *comp;
-//    MatrixGet( matA );
-//    Laplacian( matA.matrix, lapA );
-//    MatrixPrint( *lapA );
+//    graph gr;
+//    MatrixGet( gr.adj );
+//    Laplacian( gr.adj, gr.lap );
 //    if( !MatrixEigen( comp ));
 //        return -1;
-    test6();
-//    test2();
+    test4();
     return 0;
 }
 
@@ -31,11 +29,11 @@ void test1()
     graph graph1(n,n);
     double data1[n*n] = {
      /* A B C D E */
-        0,7,4,0,0, /*A*/
-        7,0,3,0,0, /*B*/
-        4,3,0,1,8, /*C*/
-        0,0,1,0,2, /*D*/
-        0,0,8,2,0, /*E*/ };
+        0,1,1,0,0, /*A*/
+        1,0,1,0,0, /*B*/
+        1,1,0,1,1, /*C*/
+        0,0,1,0,1, /*D*/
+        0,0,1,1,0, /*E*/ };
     graph1.adj = gsl_matrix_alloc(n,n);
     graph1.adj->data = data1;
     doTests( graph1 );
@@ -72,9 +70,25 @@ void test3()
     gr.adj->data = data;
     doTests( gr );
 }
+
+// TEST HAMILTONIAN CIRCUIT
 void test4()
 {
+    const int n = 4;
+    graph gr(n,n);
+    double data[n*n] = {
+
+            0,1,1,1,
+            1,0,1,1,
+            1,1,0,1,
+            1,1,1,0 
+    };
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    IncidenceMat( gr.adj, gr.inc );
+    HamiltonianCircuit( gr );
 }
+
 void test5()
 {
 }

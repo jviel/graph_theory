@@ -9,6 +9,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_permutation.h>
+#include <gsl/gsl_permute.h>
 using namespace std;
 
 typedef gsl_matrix matrix;
@@ -268,59 +269,97 @@ bool EulerCircuit( matrix & degMat, matrix *& incMat )
 }
 
 /* This function uses Prim's algorithm for finding the minimum spanning tree */
-/* Set A begins with an arbitrary node. Set B is the set of all other nodes in graph */
-/* The cheapest path from A to any node in B is added. The new node is removed from set B Now nodes (a,b) are part of set A */
+/* Set A begins with an arbitrary node (in this case, always the first row of adj mat. Set B is the set of all other nodes in graph */
+/* The cheapest path from A to any node in B is added. The new node is removed from set B. Now nodes (a,b) are part of set A */
 /* repeat until all nodes are part of set A */
 void MinSpanTree( graph & gr )
 {
-    if( GSL_REAL(gr.algCon) <= 0 ){ return; } // if graph not connected
+//    if( GSL_REAL(gr.algCon) <= 0 ){ return; } // if graph not connected
+    int     ij[2]; 
+    int     numVisited = 1, 
+            rows = gr.numNodes;
+    double  totalWeight = 0;
+    double  cur, cheapest;
+    int     visited[rows] = {0}; // hash table. Each cell represents a node. If 1, it has been visited
 
-    double totalWeight = 0;
-    double cur, cheapest;
-    int ij[2];     // [ i, j ] coord of cheapest edge 
-    int numVisited = 1, 
-        rows = gr.numNodes;
-    int visited[rows] = {0}; // hash table. Each cell represents a node. If 1, it has been visited
-    visited[0] = 1;
+    visited[0] = 1;                                              // begin with 'a' visited
     auto set = [](int* ij, int i, int j ){ ij[0]=i; ij[1]=j; };  // lambda fxn to set ij
 
-    gr.minSpan = gsl_matrix_calloc( rows,rows ); // initializes minSpan adj matrix to all 0s
+    gr.minSpan = gsl_matrix_calloc( rows,rows );
     matrix adjCpy = *gsl_matrix_alloc( rows,rows );
-    gsl_matrix_memcpy( &adjCpy, gr.adj ); // copies adj to adjCpy. Keeps orig adj matrix
+    gsl_matrix_memcpy( &adjCpy, gr.adj );           // copies adj to adjCpy. Keeps orig adj matrix
 
     while( numVisited < rows )
     {
-        set( ij, 0, 1 ); // resets ij for each traversal
+        set( ij, 0, 1 );                    // resets ij for each traversal
         cheapest = 0;
-        // traverse to find cheapest edge
-        for(int i=0; i<rows; i++ ){
-            if( !visited[i] ){continue;} // skips origin nodes not in set A
-            for( int j=i+1; j<rows; j++ ){ // only search upper tri
+        for(int i=0; i<rows; i++ ){         // traverse to find cheapest edge
+            if( !visited[i] ){continue;}    // skips rows not yet in set A
+            for( int j=0; j<rows; j++ )     // only search upper tri
+            {
                 cur = gsl_matrix_get( &adjCpy,i,j );
-                if( (cur != 0) && (cheapest == 0 || cur < cheapest) ){ // makes ij the cheapest non-zero edge
-                    set( ij, i, j );
+                if( (cur != 0) && (cheapest == 0 || cur < cheapest) ){ 
+                    set( ij, i, j );        // makes ij the cheapest non-zero edge
                     cheapest = cur;
                 }
             }
         }
-        if( !(visited[ ij[0] ] && visited[ ij[1] ]) ){ // if one or both of the two nodes have not been visited
-            if( visited[ ij[0] ] == 0 )
-                numVisited++;
-            if( visited[ ij[1] ] == 0 )
-                numVisited++;
-            visited[ ij[0] ] = 1; // sets node as visited
-            visited[ ij[1] ] = 1;
-            totalWeight += cheapest;
-            gsl_matrix_set( gr.minSpan,ij[0],ij[1],cheapest ); // sets both cells of minSpan to wt of corresponding added edge
+        if( !(visited[ ij[0] ] && visited[ ij[1] ]) ){                    // if one or both of the two nodes have not been visited
+            if( !visited[ ij[0] ] ) {numVisited++; visited[ ij[0] ] = 1;} // sets node(s) as visited
+            if( !visited[ ij[1] ] ) {numVisited++; visited[ ij[1] ] = 1;}
+            gsl_matrix_set( gr.minSpan,ij[0],ij[1],cheapest );            // sets both cells of minSpan to wt of corresponding added edge
             gsl_matrix_set( gr.minSpan,ij[1],ij[0],cheapest );
+            totalWeight += cheapest;
         }
-        for( auto item : visited )
-            cout << item << ", ";
-        cout << " visited: " << numVisited << " total wt: " << totalWeight << endl;
-        gsl_matrix_set( &adjCpy, ij[0], ij[1], 0 );      // removes edge from upper tri of adjCpy
-   }
-   cout << endl << "Minimum Spanning Tree (total edge wt = " << totalWeight << "):" << endl;
-   MatrixPrint( gr.minSpan );
+        gsl_matrix_set( &adjCpy, ij[0], ij[1], 0 );      // removes edge from adjCpy
+        gsl_matrix_set( &adjCpy, ij[1], ij[0], 0 );     
+    }
+    cout << endl << "Minimum Spanning Tree (total edge wt = " << totalWeight << "):" << endl;
+    MatrixPrint( gr.minSpan );
+}
+
+void HamiltonianCircuit( graph & gr )
+{
+    /* RECURSIVE
+        take first col and swap with second item. If 2nd item consists of more than one col, call function again with pivot at first col of '2nd item'
+        so
+        permute( item1, item2 )
+        permute( col1, permute( col2, col3 ) )
+
+        -> 1 (2 3)
+           1 (3 2)
+              1 (2 3) switch back
+           2 (3 1)
+           2 (1 3)
+              2 (3 1)
+           3 (2 1)
+           3 (1 2)
+           
+           OR
+
+         -> 1 (2 3)
+            1 (3 2)
+            3 (2 1)
+            3 (1 2)
+
+    */
+    //permute
+    // gsl_permutation_init( p );       // reset to identity permutation (0,1,2,3,...,N-1)
+    // gsl_permutation_swap( p, i, j ); // swap values
+    int rows = gr.inc->size1;
+    int cols = gr.inc->size2;
+    int matSize = (rows*cols);
+    gsl_permutation *p = gsl_permutation_calloc(cols);
+
+    for( int i=0; i<cols; i++ ){
+        MatrixPrint( gr.inc );
+        cout << endl;
+        gsl_matrix_swap_columns( gr.inc, i, 0 );
+      //  gsl_permutation_next( p );
+      //  gsl_permute( p, gr.inc->data, cols, matSize ); 
+    }
+    gsl_permutation_free( p );
+    //gsl_permutation_swap( p, 2, 3 );
 }
 
 // test prototypes
