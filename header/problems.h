@@ -13,6 +13,9 @@ void problem3();
 void problem4();
 void problem5();
 void problem6();
+void problem8();
+void problem9();
+void problem10();
 
 void problem1() {
   matrix<double> a =
@@ -192,3 +195,123 @@ void problem6() {
 }
 
 
+void problem8() {
+  matrix<double> a =
+    {{0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1}
+    ,{1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1}
+    ,{1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1}
+    ,{0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1}
+    ,{1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1}
+    ,{1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1}
+    ,{0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0}
+    ,{0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1}
+    ,{1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0}
+    ,{0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1}
+    ,{1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0}
+    ,{1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0}};
+
+  auto d = degree(a);
+
+  unsigned long size = a.size();
+
+  matrix<double> m(size, vector<double>(size, 0));
+
+  for (unsigned long r = 0; r < size; r++) {
+    for (unsigned long c = 0; c < size; c++) {
+      if(a[r][c] == 1) {
+        m[r][c] = d[r][r] + d[c][c];
+      }
+    }
+  }
+
+  cout << "weighted adjacency matrix" << endl;
+  println(m);
+
+  newline();
+
+  auto msp = minimalSpanningTree(m);
+  auto cost = costOfRoute(m, msp);
+  auto amsp = adjacency(m, msp);
+
+  cout << "adjacency matrix of minimal spanning tree" << endl;
+  println(amsp);
+
+  newline();
+
+  cout << "cost of route = " << cost;
+}
+
+void problem9() {
+  matrix<double> a =
+    {{0,1,0,1,1,0,1,0,0,0,0}
+    ,{1,0,1,0,0,0,0,1,0,1,0}
+    ,{0,1,0,1,0,1,0,0,0,0,0}
+    ,{1,0,1,0,0,0,0,0,1,0,1}
+    ,{1,0,0,0,0,1,0,0,0,1,0}
+    ,{0,0,1,0,1,0,1,1,1,0,0}
+    ,{1,0,0,0,0,1,0,0,0,0,1}
+    ,{0,1,0,0,0,1,0,0,0,0,1}
+    ,{0,0,0,1,0,1,0,0,0,1,0}
+    ,{0,1,0,0,1,0,0,0,1,0,1}
+    ,{0,0,0,1,0,0,1,1,0,1,0}};
+
+  auto d = degree(a);
+
+  unsigned long size = a.size();
+
+  matrix<double> m(size, vector<double>(size, 0));
+
+  for (unsigned long r = 0; r < size; r++) {
+    for (unsigned long c = 0; c < size; c++) {
+      if(a[r][c] == 1) {
+        m[r][c] = d[r][r] + d[c][c];
+      }
+    }
+  }
+
+  cout << "weighted adjacency matrix" << endl;
+  println(m);
+
+  newline();
+
+  auto msp = minimalSpanningTree(m);
+
+  if (msp.size() == 0) {
+    cout << "no minimal spanning tree exists";
+    return;
+  }
+
+  auto cost = costOfRoute(m, msp);
+  auto amsp = adjacency(m, msp);
+
+  cout << "adjacency matrix of minimal spanning tree" << endl;
+  println(amsp);
+
+  newline();
+
+  cout << "cost of route = " << cost;
+}
+
+void problem10() {
+  /*
+  matrix<double> a =
+    {{0,1,0,1,1,0,1,0,0,0,0}
+    ,{1,0,1,0,0,0,0,1,0,1,0}
+    ,{0,1,0,1,0,1,0,0,0,0,0}
+    ,{1,0,1,0,0,0,0,0,1,0,1}
+    ,{1,0,0,0,0,1,0,0,0,1,0}
+    ,{0,0,1,0,1,0,1,1,1,0,0}
+    ,{1,0,0,0,0,1,0,0,0,0,1}
+    ,{0,1,0,0,0,1,0,0,0,0,1}
+    ,{0,0,0,1,0,1,0,0,0,1,0}
+    ,{0,1,0,0,1,0,0,0,1,0,1}
+    ,{0,0,0,1,0,0,1,1,0,1,0}};
+  */
+
+  matrix<double> a;
+
+  auto i = incidence(a);
+
+  vector<unsigned long> path;
+  println(i);
+}

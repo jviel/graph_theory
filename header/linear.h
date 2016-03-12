@@ -75,6 +75,10 @@ matrix<M> adjacency(const vector<char> &nodes,
                     const vector<vector<char>> &edges);
 
 template <class M>
+matrix<M> adjacency(const matrix<M> &mat,
+                    const vector<pair<int,int>> &edges);
+
+template <class M>
 matrix<M> complement(const matrix<M> &mat);
 
 template <class M>
@@ -450,6 +454,17 @@ matrix<M> adjacency(const vector<char> &nodes,
   return ret;
 }
 
+template <class M>
+matrix<M> adjacency(const matrix<M> &mat,
+                    const vector<pair<int,int>> &path) {
+  unsigned long size = mat.size();
+  matrix<M> ret(size, vector<M>(size, (M)0));
+
+  for (auto &p : path)
+    ret[p.first][p.second] = ret[p.second][p.first] = mat[p.first][p.second];
+
+  return ret;
+}
 
 template <class M>
 matrix<M> complement(const matrix<M> &mat) {
@@ -722,9 +737,80 @@ vector<int> eulerCircuit(const matrix<M> &adjacency) {
   return ret;
 }
 
-
 template <class M>
 vector<pair<int,int>> minimalSpanningTree(const matrix<M> &adjacency) {
+  if (isJagged(adjacency))
+    throw invalid_argument("Matrix cannot be jagged");
+
+  if (!isSquare(adjacency))
+    throw invalid_argument("Matrix must be square");
+
+  if (numSpanningTrees(adjacency) == 0)
+    return {};
+
+  unsigned long aSize = adjacency.size();
+  vector<pair<int,int>> ret;
+
+  matrix<M> zero(aSize, vector<M>(aSize, (M)0));
+
+  matrix<M> a = adjacency;
+
+  vector<unsigned long> available = {0};
+
+  struct cell {
+    unsigned long r, c;
+    double v;
+
+    cell(const unsigned long &r, const unsigned long &c, const double &v):
+      r(r),
+      c(c),
+      v(v)
+    {}
+  };
+
+  while (a != zero) {
+    cell sc = cell(0, 0, 0);
+    for (auto &r : available)
+      for (unsigned long c = 0; c < aSize; c++)
+        if (a[r][c] != 0 && (sc.v == 0 || a[r][c] < sc.v))
+          sc = cell(r, c, a[r][c]);
+
+    a[sc.r][sc.c] = a[sc.c][sc.r] = 0;
+
+    bool cTaken = false, rTaken = false;
+    for (auto &p : ret) {
+      if (p.first == sc.c || p.second == sc.c)
+        cTaken = true;
+      if (p.first == sc.r || p.second == sc.r)
+        rTaken = true;
+    }
+
+    if (!(cTaken && rTaken)) {
+      ret.push_back(make_pair(sc.r, sc.c));
+
+      cTaken = false;
+      rTaken = false;
+
+      for (auto &i : available) {
+        if (i == sc.c)
+          cTaken = true;
+        if (i == sc.r)
+          rTaken = true;
+      }
+
+      if (!cTaken)
+        available.push_back(sc.c);
+      if (!rTaken)
+        available.push_back(sc.r);
+    }
+  }
+
+  return ret;
+};
+
+
+template <class M>
+vector<pair<int,int>> minimalSpanningTreeBackup(const matrix<M> &adjacency) {
   if (isJagged(adjacency))
     throw invalid_argument("Matrix cannot be jagged");
 
@@ -865,7 +951,7 @@ unsigned long numSpanningTrees(const matrix<M> &mat, bool adjacency) {
     return 0;
 
   double product = 1;
-  for (unsigned long i = 2; i < evs.size(); i++) {
+  for (unsigned long i = 1; i < evs.size(); i++) {
     product *= GSL_REAL(evs[i]);
   }
 

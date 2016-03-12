@@ -35,8 +35,11 @@ namespace ui {
 
   void matrices();
   void operations();
+
   string getString(string prompt);
   vector<double> getVector(string prompt);
+  matrix<double> getMatrix(string prompt);
+  matrix<double> getSquareMatrix(string prompt);
 
   void clearBuffer() {
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -263,6 +266,58 @@ namespace ui {
     }
 
     return elements;
+  }
+
+  matrix<double> getMatrix(string prompt) {
+    matrix<double> ret;
+    vector<double> elements;
+    cout << prompt << ": " << endl;
+    string t, word;
+    unsigned long rowLength = 0;
+
+    do {
+      elements = {};
+
+      getline(cin, t);
+      istringstream iss(t);
+      while (iss >> word) {
+        double number;
+        stringstream ss(word);
+        ss >> number;
+        if (ss.fail()) {
+          cout << endl << "Invalid input, try again" << endl;
+          return getMatrix(prompt);
+        }
+
+        elements.push_back(number);
+      }
+
+      if (elements.size() != 0) {
+        if (rowLength == 0)
+          rowLength = elements.size();
+        else if (rowLength != elements.size()) {
+          cout << endl << "Invalid input, try again" << endl;
+          return getMatrix(prompt);
+        }
+        ret.push_back(elements);
+      }
+    } while (elements.size() != 0);
+
+    if (ret.size() == 0) {
+      cout << "Invalid input, try again" << endl;
+      return getMatrix(prompt);
+    }
+
+    return ret;
+  }
+
+  matrix<double> getSquareMatrix(string prompt) {
+    auto mat = getMatrix(prompt);
+    if (mat.size() != mat[0].size()) {
+      cout << "Invalid input, try again" << endl;
+      return getSquareMatrix(prompt);
+    }
+    return mat;
   }
 }
 
