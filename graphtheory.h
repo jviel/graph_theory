@@ -21,7 +21,8 @@ struct graph {
                        *comp,     // complement matrix
                        *lap,      // Laplacian matrix
                        *deg,      // degree matrix
-                       *inc;      // incidence matrix
+                       *inc,      // incidence matrix
+                       *minSpan;  // minimum spanning tree( adjacency matrix )
     gsl_vector_complex *evals;    // eigenvalues of Laplacian matrix
     gsl_complex        algCon;
 
@@ -130,15 +131,17 @@ bool MatrixEigen( const matrix * mat, gsl_vector_complex *& eval )
 
 void DegreeMat( const matrix * src, matrix *& dest )
 {
-    double rowsum;
+    int rowsum;
     int rows = src->size1;
     int cols = src->size2;
     dest = gsl_matrix_calloc( rows, cols );
     for( int i=0; i<rows; i++ )
     {
         rowsum = 0;
-        for( int j=0; j<cols; j++ )
-            rowsum += gsl_matrix_get(src, i, j);
+        for( int j=0; j<cols; j++ ){
+            if( gsl_matrix_get(src,i,j) != 0 )
+                rowsum++;
+        }
         gsl_matrix_set( dest, i, i, rowsum ); // sets diagonal entry
     }    
 }
@@ -168,6 +171,8 @@ void Laplacian( const matrix * mat, matrix *& deg, matrix *& lap )
 void MatrixCompliment( const matrix * src, matrix *& dest )
 {
     int size = src->size1;
+    if( dest ){gsl_matrix_free( dest );}
+
     dest = gsl_matrix_calloc( size, size );
     // set univ graph adjacency matrix to all 1s except for main diag.
     for( int i=0; i<size; i++ ){
@@ -252,8 +257,7 @@ bool EulerCircuit( matrix & degMat, matrix *& incMat )
         }
         ++c %= cols; // wraps to first col
     }
-    if( gsl_matrix_equal( incMatCopy, incEmpty )){
-        //print path;
+    if( gsl_matrix_equal( incMatCopy, incEmpty ) && r == 0 ){ // all edges traversed and back to origin
         cout << "Euler circuit successful!" << endl;
         cout << circuitString << endl;
     }
@@ -263,9 +267,69 @@ bool EulerCircuit( matrix & degMat, matrix *& incMat )
     gsl_matrix_free( incEmpty );
 }
 
+/* This function uses Prim's algorithm for finding the minimum spanning tree */
+/* Set A begins with an arbitrary node. Set B is the set of all other nodes in graph */
+/* The cheapest path from A to any node in B is added. The new node is removed from set B Now nodes (a,b) are part of set A */
+/* repeat until all nodes are part of set A */
+void MinSpanTree( graph & gr )
+{
+    if( GSL_REAL(gr.algCon) <= 0 ){ return; } // if graph not connected
+
+    double totalWeight = 0;
+    double cur, cheapest;
+    int ij[2];     // [ i, j ] coord of cheapest edge 
+    int numVisited = 1, 
+        rows = gr.numNodes;
+    int visited[rows] = {0}; // hash table. Each cell represents a node. If 1, it has been visited
+    visited[0] = 1;
+    auto set = [](int* ij, int i, int j ){ ij[0]=i; ij[1]=j; };  // lambda fxn to set ij
+
+    gr.minSpan = gsl_matrix_calloc( rows,rows ); // initializes minSpan adj matrix to all 0s
+    matrix adjCpy = *gsl_matrix_alloc( rows,rows );
+    gsl_matrix_memcpy( &adjCpy, gr.adj ); // copies adj to adjCpy. Keeps orig adj matrix
+
+    while( numVisited < rows )
+    {
+        set( ij, 0, 1 ); // resets ij for each traversal
+        cheapest = 0;
+        // traverse to find cheapest edge
+        for(int i=0; i<rows; i++ ){
+            if( !visited[i] ){continue;} // skips origin nodes not in set A
+            for( int j=i+1; j<rows; j++ ){ // only search upper tri
+                cur = gsl_matrix_get( &adjCpy,i,j );
+                if( (cur != 0) && (cheapest == 0 || cur < cheapest) ){ // makes ij the cheapest non-zero edge
+                    set( ij, i, j );
+                    cheapest = cur;
+                }
+            }
+        }
+        if( !(visited[ ij[0] ] && visited[ ij[1] ]) ){ // if one or both of the two nodes have not been visited
+            if( visited[ ij[0] ] == 0 )
+                numVisited++;
+            if( visited[ ij[1] ] == 0 )
+                numVisited++;
+            visited[ ij[0] ] = 1; // sets node as visited
+            visited[ ij[1] ] = 1;
+            totalWeight += cheapest;
+            gsl_matrix_set( gr.minSpan,ij[0],ij[1],cheapest ); // sets both cells of minSpan to wt of corresponding added edge
+            gsl_matrix_set( gr.minSpan,ij[1],ij[0],cheapest );
+        }
+        for( auto item : visited )
+            cout << item << ", ";
+        cout << " visited: " << numVisited << " total wt: " << totalWeight << endl;
+        gsl_matrix_set( &adjCpy, ij[0], ij[1], 0 );      // removes edge from upper tri of adjCpy
+   }
+   cout << endl << "Minimum Spanning Tree (total edge wt = " << totalWeight << "):" << endl;
+   MatrixPrint( gr.minSpan );
+}
+
+// test prototypes
 void test1();
 void test2();
 void test3();
 void test4();
 void test5();
 void test6();
+void test7();
+void test8();
+void test9();

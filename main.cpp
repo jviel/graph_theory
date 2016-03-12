@@ -11,8 +11,8 @@ int main()
 //    MatrixPrint( *lapA );
 //    if( !MatrixEigen( comp ));
 //        return -1;
-//    test1();
-    test2();
+    test6();
+//    test2();
     return 0;
 }
 
@@ -31,12 +31,11 @@ void test1()
     graph graph1(n,n);
     double data1[n*n] = {
      /* A B C D E */
-        0,1,1,0,0, /*A*/
-        1,0,1,0,0, /*B*/
-        1,1,0,1,1, /*C*/
-        0,0,1,0,1, /*D*/
-        0,0,1,1,0, /*E*/ };
-
+        0,7,4,0,0, /*A*/
+        7,0,3,0,0, /*B*/
+        4,3,0,1,8, /*C*/
+        0,0,1,0,2, /*D*/
+        0,0,8,2,0, /*E*/ };
     graph1.adj = gsl_matrix_alloc(n,n);
     graph1.adj->data = data1;
     doTests( graph1 );
@@ -48,10 +47,10 @@ void test2()
     graph graph2(n,n);
     double data2[n*n] = {
      /* A B C D */
-        0,1,1,0, /*A*/
-        1,0,0,1, /*B*/
-        1,0,0,1, /*C*/
-        0,1,1,0, /*D*/};
+        0,4,0,0, /*A*/
+        4,0,6,1, /*B*/
+        0,6,0,5, /*C*/
+        0,1,5,0, /*D*/};
 
     graph2.adj = gsl_matrix_alloc(n,n);
     graph2.adj->data = data2;
@@ -60,6 +59,18 @@ void test2()
 
 void test3()
 {
+    const int n = 4;
+    graph gr(n,n);
+    double data[n*n] = {
+     /* A B C D */
+        0,1,1,2, /*A*/
+        1,0,4,1, /*B*/
+        1,4,0,6, /*C*/
+        2,1,6,0  /*D*/};
+
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    doTests( gr );
 }
 void test4()
 {
@@ -70,8 +81,8 @@ void test5()
 void test6()
 {
     const int n = 11;
-    graph graph6(n,n);
-    double data6[n*n] = {
+    graph gr(n,n);
+    double data[n*n] = {
         0,1,0,1,1,0,1,0,0,0,0,
         1,0,1,0,0,0,0,1,0,1,0,
         0,1,0,1,0,1,0,0,0,0,0,
@@ -84,9 +95,46 @@ void test6()
         0,1,0,0,1,0,0,0,1,0,1,
         0,0,0,1,0,0,1,1,0,1,0  };
 
-    graph6.adj = gsl_matrix_alloc(n,n);
-    graph6.adj->data = data6;
-    doTests( graph6 );
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    MatrixCompliment( gr.adj, gr.comp );
+    gsl_matrix_memcpy( gr.adj, gr.comp );
+    MatrixPrint( gr.adj );
+    doTests( gr );
+}
+void test9()
+{
+    const int n = 11;
+    graph gr(n,n);
+    double data[n*n] = {
+        0,1,0,1,1,0,1,0,0,0,0,
+        1,0,1,0,0,0,0,1,0,1,0,
+        0,1,0,1,0,1,0,0,0,0,0,
+        1,0,1,0,0,0,0,0,1,0,1,
+        1,0,0,0,0,1,0,0,0,1,0,
+        0,0,1,0,1,0,1,1,1,0,0,
+        1,0,0,0,0,1,0,0,0,0,1,
+        0,1,0,0,0,1,0,0,0,0,1,
+        0,0,0,1,0,1,0,0,0,1,0,
+        0,1,0,0,1,0,0,0,1,0,1,
+        0,0,0,1,0,0,1,1,0,1,0  };
+
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    DegreeMat( gr.adj, gr.deg );
+    MatrixPrint( gr.deg );
+    // set wt of each edge to the sum of the degrees of the nodes it connects
+    for( int i=0; i<gr.numNodes; i++ ){
+        for( int j=0; j<gr.numNodes; j++ ){
+            if( gsl_matrix_get(gr.adj,i,j) != 0 ){
+                int deg1 = gsl_matrix_get( gr.deg,i,i );
+                int deg2 = gsl_matrix_get( gr.deg,j,j );
+                gsl_matrix_set( gr.adj,i,j, (deg1+deg2) );
+            }
+        }
+    }
+    MatrixPrint( gr.adj );
+    doTests( gr );
 }
 
 void doTests( graph & gr )
@@ -101,4 +149,5 @@ void doTests( graph & gr )
     
     IncidenceMat( gr.adj, gr.inc );
     EulerCircuit( *gr.deg, gr.inc );
+    MinSpanTree( gr );
 }
