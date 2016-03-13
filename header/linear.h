@@ -14,6 +14,7 @@
 #include <utility>
 #include <iostream>
 #include <math.h>
+#include <algorithm>
 
 using namespace std;
 
