@@ -86,7 +86,10 @@ void test4()
     gr.adj = gsl_matrix_alloc(n,n);
     gr.adj->data = data;
     IncidenceMat( gr.adj, gr.inc );
-    HamiltonianCircuit( gr );
+    TryCircuit( gr.inc, n );
+//    if( PermuteMatrix( gr.inc, n, n ) )
+//        cout << "FOUND CIRCUIT!" << endl;
+//    HamiltonianCircuit( gr );
 }
 
 void test5()
