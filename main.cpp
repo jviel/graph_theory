@@ -10,7 +10,30 @@ int main()
 //    Laplacian( gr.adj, gr.lap );
 //    if( !MatrixEigen( comp ));
 //        return -1;
+    cout << "test 1" << endl;
+    cout << "------------------" << endl;
+    test1();
+    cout << "test 2" << endl;
+    cout << "------------------" << endl;
+    test2();
+    cout << "test 3" << endl;
+    cout << "------------------" << endl;
+    test3();
+    cout << "test 4" << endl;
+    cout << "------------------" << endl;
+    test4();
+    cout << "test 5" << endl;
+    cout << "------------------" << endl;
+    test5();
+    cout << "test 6" << endl;
+    cout << "------------------" << endl;
     test6();
+    cout << "test 8" << endl;
+    cout << "------------------" << endl;
+    test8();
+    cout << "test 9" << endl;
+    cout << "------------------" << endl;
+    test9();
     return 0;
 }
 
@@ -18,22 +41,19 @@ void doTests( graph & gr ); // receives a graph struct with adjacency matrix ini
 
 void test1()
 {
-    /*
-        A - B
-         \ /  
-          C
-         / \
-        D - E
-    */
-    const int n = 5;
+    const int n = 8;
     graph graph1(n,n);
     double data1[n*n] = {
-     /* A B C D E */
-        0,1,1,0,0, /*A*/
-        1,0,1,0,0, /*B*/
-        1,1,0,1,1, /*C*/
-        0,0,1,0,1, /*D*/
-        0,0,1,1,0, /*E*/ };
+        
+            0,1,0,0,1,0,0,0,
+            1,0,1,1,0,1,1,0,
+            0,1,0,0,0,1,0,0,
+            0,1,0,0,1,1,0,0,
+            1,0,0,1,0,1,0,0,
+            0,1,1,1,1,0,0,1,
+            0,1,0,0,0,0,0,1,
+            0,0,0,0,0,1,1,0
+    };
     graph1.adj = gsl_matrix_alloc(n,n);
     graph1.adj->data = data1;
     doTests( graph1 );
@@ -41,15 +61,23 @@ void test1()
 
 void test2()
 {
-    const int n = 4;
+    const int n = 12;
     graph graph2(n,n);
     double data2[n*n] = {
-     /* A B C D */
-        0,4,0,0, /*A*/
-        4,0,6,1, /*B*/
-        0,6,0,5, /*C*/
-        0,1,5,0, /*D*/};
 
+        0,1,1,0,1,1,0,0,1,0,1,1,
+        1,0,1,0,0,1,0,1,1,1,0,1,
+        1,1,0,1,1,0,1,1,1,1,0,1,
+        0,0,1,0,1,1,1,0,1,1,1,1,
+        1,0,1,1,0,1,0,1,1,0,0,1,
+        1,1,0,1,1,0,1,0,1,1,1,1,
+        0,0,1,1,0,1,0,1,1,1,1,0,
+        0,1,1,0,1,0,1,0,1,1,1,1,
+        1,1,1,1,1,1,1,1,0,0,1,0,
+        0,1,1,1,0,1,1,1,0,0,1,1,
+        1,0,0,1,0,1,1,1,1,1,0,0,
+        1,1,1,1,1,1,0,1,0,1,0,0
+    };
     graph2.adj = gsl_matrix_alloc(n,n);
     graph2.adj->data = data2;
     doTests( graph2 );
@@ -57,44 +85,74 @@ void test2()
 
 void test3()
 {
-    const int n = 4;
+    const int n = 10;
     graph gr(n,n);
     double data[n*n] = {
-     /* A B C D */
-        0,1,1,2, /*A*/
-        1,0,4,1, /*B*/
-        1,4,0,6, /*C*/
-        2,1,6,0  /*D*/};
 
+            0,0,1,0,0,0,0,0,0,0,
+            0,0,0,0,0,1,1,1,0,0,
+            1,0,0,0,0,0,1,0,0,0,
+            0,0,0,0,1,0,0,0,1,1,
+            0,0,0,1,0,0,1,0,0,1,
+            0,1,0,0,0,0,0,1,0,0,
+            0,1,1,0,1,0,0,1,0,1,
+            0,1,0,0,0,1,1,0,1,1,
+            0,0,0,1,0,0,0,1,0,0,
+            0,0,0,1,1,0,1,1,0,0
+    };
     gr.adj = gsl_matrix_alloc(n,n);
     gr.adj->data = data;
     doTests( gr );
 }
 
-// TEST HAMILTONIAN CIRCUIT
 void test4()
 {
-    const int n = 4;
+    const int n = 10;
     graph gr(n,n);
     double data[n*n] = {
 
-            0,0,1,1,
-            0,0,1,1,
-            1,1,0,1,
-            1,1,1,0 
+            0,0,0,1,1,1,0,0,1,1,
+            0,0,0,0,0,0,1,1,0,1,
+            0,0,0,0,0,0,0,0,0,0,
+            1,0,0,0,0,0,0,1,0,0,
+            1,0,0,0,0,0,1,0,1,0,
+            1,0,0,0,0,0,1,0,0,0,
+            0,1,0,0,1,1,0,0,1,1,
+            0,1,0,1,0,0,0,0,1,0,
+            1,0,0,0,1,0,1,1,0,0,
+            1,1,0,0,0,0,1,0,0,0
     };
     gr.adj = gsl_matrix_alloc(n,n);
     gr.adj->data = data;
-    IncidenceMat( gr.adj, gr.inc );
-//    TryCircuit( gr.inc, n );
-    if( PermuteMatrix( gr.inc, n, n ) )
-        cout << "FOUND CIRCUIT!" << endl;
-//    HamiltonianCircuit( gr );
+    MatrixCompliment( gr.adj, gr.comp );
+    gsl_matrix_memcpy( gr.adj, gr.comp );
+    doTests( gr );
 }
 
 void test5()
 {
+    const int n = 10;
+    graph gr(n,n);
+    double data[n*n] = {
+
+            0,1,1,1,0,0,1,0,0,0,
+            1,0,0,0,1,0,0,0,0,0,
+            1,0,0,0,0,0,0,0,0,0,
+            1,0,0,0,1,0,0,0,0,0,
+            0,1,0,1,0,0,1,0,1,1,
+            0,0,0,0,0,0,0,0,0,0,
+            1,0,0,0,1,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,1,0,0,0,0,0,
+            0,0,0,0,1,0,0,0,0,0
+    };
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    MatrixCompliment( gr.adj, gr.comp );
+    gsl_matrix_memcpy( gr.adj, gr.comp );
+    doTests( gr );
 }
+
 void test6()
 {
     const int n = 11;
@@ -115,12 +173,43 @@ void test6()
     gr.adj = gsl_matrix_alloc(n,n);
     gr.adj->data = data;
     IncidenceMat( gr.adj, gr.inc );
-    PermuteMatrix( gr.inc, n, n );
-//    MatrixCompliment( gr.adj, gr.comp );
-//    gsl_matrix_memcpy( gr.adj, gr.comp );
-//    MatrixPrint( gr.adj );
-//    doTests( gr );
+    HamiltonianCircuit( gr.inc, n, n );
+    MatrixCompliment( gr.adj, gr.comp );
+    gsl_matrix_memcpy( gr.adj, gr.comp );
+    doTests( gr );
 }
+
+void test7()
+{
+    // not connected
+}
+
+void test8()
+{
+    const int n = 12;
+    graph gr(n,n);
+    double data[n*n] = {
+
+        0,1,1,0,1,1,0,0,1,0,1,1,
+        1,0,1,0,0,1,0,1,1,1,0,1,
+        1,1,0,1,1,0,1,1,1,1,0,1,
+        0,0,1,0,1,1,1,0,1,1,1,1,
+        1,0,1,1,0,1,0,1,1,0,0,1,
+        1,1,0,1,1,0,1,0,1,1,1,1,
+        0,0,1,1,0,1,0,1,1,1,1,0,
+        0,1,1,0,1,0,1,0,1,1,1,1,
+        1,1,1,1,1,1,1,1,0,0,1,0,
+        0,1,1,1,0,1,1,1,0,0,1,1,
+        1,0,0,1,0,1,1,1,1,1,0,0,
+        1,1,1,1,1,1,0,1,0,1,0,0
+    };
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    DegreeMat( gr.adj, gr.deg );
+    DegSumAdj( gr.adj, gr.deg );
+    doTests( gr );
+}
+
 void test9()
 {
     const int n = 11;
@@ -141,18 +230,33 @@ void test9()
     gr.adj = gsl_matrix_alloc(n,n);
     gr.adj->data = data;
     DegreeMat( gr.adj, gr.deg );
-    MatrixPrint( gr.deg );
-    // set wt of each edge to the sum of the degrees of the nodes it connects
-    for( int i=0; i<gr.numNodes; i++ ){
-        for( int j=0; j<gr.numNodes; j++ ){
-            if( gsl_matrix_get(gr.adj,i,j) != 0 ){
-                int deg1 = gsl_matrix_get( gr.deg,i,i );
-                int deg2 = gsl_matrix_get( gr.deg,j,j );
-                gsl_matrix_set( gr.adj,i,j, (deg1+deg2) );
-            }
-        }
-    }
-    MatrixPrint( gr.adj );
+    DegSumAdj( gr.adj, gr.deg );
+    doTests( gr );
+}
+
+void test10()
+{
+    const int n = 11;
+    graph gr(n,n);
+    double data[n*n] = {
+        0,1,0,1,1,0,1,0,0,0,0,
+        1,0,1,0,0,0,0,1,0,1,0,
+        0,1,0,1,0,1,0,0,0,0,0,
+        1,0,1,0,0,0,0,0,1,0,1,
+        1,0,0,0,0,1,0,0,0,1,0,
+        0,0,1,0,1,0,1,1,1,0,0,
+        1,0,0,0,0,1,0,0,0,0,1,
+        0,1,0,0,0,1,0,0,0,0,1,
+        0,0,0,1,0,1,0,0,0,1,0,
+        0,1,0,0,1,0,0,0,1,0,1,
+        0,0,0,1,0,0,1,1,0,1,0  };
+
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    IncidenceMat( gr.adj, gr.inc );
+    HamiltonianCircuit( gr.inc, n, n );
+    MatrixCompliment( gr.adj, gr.comp );
+    gsl_matrix_memcpy( gr.adj, gr.comp );
     doTests( gr );
 }
 
@@ -161,6 +265,8 @@ void doTests( graph & gr )
     MatrixCompliment( gr.adj, gr.comp );
     DegreeMat( gr.adj, gr.deg );
     Laplacian( gr.adj, gr.deg, gr.lap );
+    cout << "laplacian:" << endl;
+    MatrixPrint( gr.lap );
     MatrixEigen( gr.lap, gr.evals );
 
     // save algebraic connectivity to member variable of graph
