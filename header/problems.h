@@ -293,7 +293,6 @@ void problem9() {
 }
 
 void problem10() {
-  /*
   matrix<double> a =
     {{0,1,0,1,1,0,1,0,0,0,0}
     ,{1,0,1,0,0,0,0,1,0,1,0}
@@ -306,12 +305,24 @@ void problem10() {
     ,{0,0,0,1,0,1,0,0,0,1,0}
     ,{0,1,0,0,1,0,0,0,1,0,1}
     ,{0,0,0,1,0,0,1,1,0,1,0}};
-  */
 
-  matrix<double> a;
+  auto d = degree(a);
 
-  auto i = incidence(a);
+  unsigned long size = a.size();
 
-  vector<unsigned long> path;
-  println(i);
+  matrix<double> m(size, vector<double>(size, 0));
+
+  for (unsigned long r = 0; r < size; r++) {
+    for (unsigned long c = 0; c < size; c++) {
+      if(a[r][c] == 1) {
+        m[r][c] = d[r][r] + d[c][c];
+      }
+    }
+  }
+
+  cout << "weighted adjacency matrix" << endl;
+  println(m);
+
+  cout << "algebraic connectivity of complement of G";
+  println(algebraicConnectivity(complement(m)));
 }
