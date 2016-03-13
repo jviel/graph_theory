@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Graph Theory Programming Proficiency
 // CS 251 - Winter 2016
 // Written by Johnny Viel 3.6.16
@@ -275,4 +276,23 @@ void doTests( graph & gr )
     IncidenceMat( gr.adj, gr.inc );
     EulerCircuit( *gr.deg, gr.inc );
     MinSpanTree( gr );
+=======
+/* file: main.cpp
+ * description: entry point of the program
+ */
+
+#include "header/cli.h"
+
+int main(int argc, char *argv[]) {
+  vector<string> args;
+
+  for (int i = 1; i < argc; i++)
+    args.push_back(argv[i]);
+
+  if (args.size() == 0)
+    return 0;
+
+  cli::parse(args);
+  return 0;
+>>>>>>> da1a0c7e3d687702e17bb3eb70ee3a5159539308
 }
