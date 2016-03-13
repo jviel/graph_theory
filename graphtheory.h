@@ -337,35 +337,35 @@ bool TryCircuit( matrix *& inc, const int &rows )
         numVisited = rowTries = 0;
         circuitString = (char)(r+65);
         gsl_matrix_memcpy( incCopy, inc );
-        cout << "orig:" << endl;
-        MatrixPrint( incCopy );
+//        cout << "orig:" << endl;
+//        MatrixPrint( incCopy );
         int origin = i;
         cout << "row " << i << endl;
         while( rowTries<=cols )
         {
             rowTries++;
             if( gsl_matrix_get(incCopy,r,c) == 1 ){
-                cout << "       at " << r << c << endl;
+//                cout << "       at " << r << c << endl;
                 numVisited++;
                 rowTries = 0;
                 prevRow  = r;
 
                 gsl_matrix_set(incCopy,r,c,0);
-                cout << endl;
-                MatrixPrint( incCopy );
+//                cout << endl;
+//                MatrixPrint( incCopy );
                 // find matching 1
                 while( gsl_matrix_get(incCopy,r,c) != 1 )
                     ++r %= rows; // wrap to first row
 
                 //cout << "pre: " << (char)(prevRow+65) << ", origin: " << (char)(origin+65) << ", " << numVisited << endl;
-                if( prevRow == origin && ((numVisited > 1) && (numVisited < (rows+1)) )){ // visited origin again before seeing all other nodes
-                    cout << "visited A again too soon" << endl;
+                if( r == origin && ((numVisited > 1) && (numVisited < (rows+1)) )){ // visited origin again before seeing all other nodes
+//                    cout << "visited A again too soon" << endl;
                     break;
                 }
                 else if( prevRow != origin ){
                     gsl_matrix_set(incCopy,prevRow,c,0);
-                    cout << endl;
-                    MatrixPrint( incCopy );
+//                    cout << endl;
+//                    MatrixPrint( incCopy );
                     for( int j=0; j<cols; j++ ){
                         if( gsl_matrix_get(incCopy,prevRow,j) == 1 ){
                             for(int row=0; row<rows; row++ ){    // set row and all connecting edges to 0
@@ -375,14 +375,14 @@ bool TryCircuit( matrix *& inc, const int &rows )
                     }
                 }
                 if( prevRow == origin && numVisited == 1 ){ // only for origin
-                    cout << "deleting origin" << endl;
+//                    cout << "deleting origin" << endl;
                     numVisited++;
                     gsl_matrix_set(incCopy,prevRow,c,0);} // set only visited end of edge to 0
 
                 gsl_matrix_set(incCopy,r,c,0); // set visited end of edge to 0
                 circuitString += " -> ";
                 circuitString += (char)(r+65);
-                cout << circuitString << " visited: " << numVisited << endl;
+//                cout << circuitString << " visited: " << numVisited << endl;
 //                MatrixPrint( incCopy );
             }
             ++c %= cols; // wraps to first col
@@ -391,8 +391,8 @@ bool TryCircuit( matrix *& inc, const int &rows )
             cout << "A Hamiltonian Circuit: " << circuitString << endl;
             i = rows;
             return true;}
-        else if ( numVisited > rows+1 )
-            cout << "Error: visited more than N+1 nodes" << endl;
+//        else if ( numVisited > rows+1 )
+//            cout << "Error: visited more than N+1 nodes" << endl;
     }
     gsl_matrix_free( incCopy );
     gsl_matrix_free( incEmpty );

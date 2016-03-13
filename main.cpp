@@ -10,7 +10,7 @@ int main()
 //    Laplacian( gr.adj, gr.lap );
 //    if( !MatrixEigen( comp ));
 //        return -1;
-    test4();
+    test6();
     return 0;
 }
 
@@ -78,17 +78,17 @@ void test4()
     graph gr(n,n);
     double data[n*n] = {
 
-            0,1,1,1,
-            1,0,1,1,
+            0,0,1,1,
+            0,0,1,1,
             1,1,0,1,
             1,1,1,0 
     };
     gr.adj = gsl_matrix_alloc(n,n);
     gr.adj->data = data;
     IncidenceMat( gr.adj, gr.inc );
-    TryCircuit( gr.inc, n );
-//    if( PermuteMatrix( gr.inc, n, n ) )
-//        cout << "FOUND CIRCUIT!" << endl;
+//    TryCircuit( gr.inc, n );
+    if( PermuteMatrix( gr.inc, n, n ) )
+        cout << "FOUND CIRCUIT!" << endl;
 //    HamiltonianCircuit( gr );
 }
 
@@ -114,10 +114,12 @@ void test6()
 
     gr.adj = gsl_matrix_alloc(n,n);
     gr.adj->data = data;
-    MatrixCompliment( gr.adj, gr.comp );
-    gsl_matrix_memcpy( gr.adj, gr.comp );
-    MatrixPrint( gr.adj );
-    doTests( gr );
+    IncidenceMat( gr.adj, gr.inc );
+    PermuteMatrix( gr.inc, n, n );
+//    MatrixCompliment( gr.adj, gr.comp );
+//    gsl_matrix_memcpy( gr.adj, gr.comp );
+//    MatrixPrint( gr.adj );
+//    doTests( gr );
 }
 void test9()
 {
