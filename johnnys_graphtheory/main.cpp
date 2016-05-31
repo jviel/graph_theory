@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // Graph Theory Programming Proficiency
 // CS 251 - Winter 2016
 // Written by Johnny Viel 3.6.16
@@ -13,7 +12,8 @@ int main()
 //        return -1;
     cout << "test 1" << endl;
     cout << "------------------" << endl;
-    test1();
+    test6();
+/*
     cout << "test 2" << endl;
     cout << "------------------" << endl;
     test2();
@@ -35,6 +35,7 @@ int main()
     cout << "test 9" << endl;
     cout << "------------------" << endl;
     test9();
+*/
     return 0;
 }
 
@@ -43,8 +44,8 @@ void doTests( graph & gr ); // receives a graph struct with adjacency matrix ini
 void test1()
 {
     const int n = 8;
-    graph graph1(n,n);
-    double data1[n*n] = {
+    graph gr(n,n);
+    double data[n*n] = {
         
             0,1,0,0,1,0,0,0,
             1,0,1,1,0,1,1,0,
@@ -55,16 +56,18 @@ void test1()
             0,1,0,0,0,0,0,1,
             0,0,0,0,0,1,1,0
     };
-    graph1.adj = gsl_matrix_alloc(n,n);
-    graph1.adj->data = data1;
-    doTests( graph1 );
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    IncidenceMat( gr.adj, gr.inc );
+    HamiltonianCircuit( gr.inc, n, n );
+    doTests( gr );
 }
 
 void test2()
 {
     const int n = 12;
-    graph graph2(n,n);
-    double data2[n*n] = {
+    graph gr(n,n);
+    double data[n*n] = {
 
         0,1,1,0,1,1,0,0,1,0,1,1,
         1,0,1,0,0,1,0,1,1,1,0,1,
@@ -79,9 +82,11 @@ void test2()
         1,0,0,1,0,1,1,1,1,1,0,0,
         1,1,1,1,1,1,0,1,0,1,0,0
     };
-    graph2.adj = gsl_matrix_alloc(n,n);
-    graph2.adj->data = data2;
-    doTests( graph2 );
+    gr.adj = gsl_matrix_alloc(n,n);
+    gr.adj->data = data;
+    IncidenceMat( gr.adj, gr.inc );
+    HamiltonianCircuit( gr.inc, n, n );
+    doTests( gr );
 }
 
 void test3()
@@ -276,23 +281,4 @@ void doTests( graph & gr )
     IncidenceMat( gr.adj, gr.inc );
     EulerCircuit( *gr.deg, gr.inc );
     MinSpanTree( gr );
-=======
-/* file: main.cpp
- * description: entry point of the program
- */
-
-#include "header/cli.h"
-
-int main(int argc, char *argv[]) {
-  vector<string> args;
-
-  for (int i = 1; i < argc; i++)
-    args.push_back(argv[i]);
-
-  if (args.size() == 0)
-    return 0;
-
-  cli::parse(args);
-  return 0;
->>>>>>> da1a0c7e3d687702e17bb3eb70ee3a5159539308
 }

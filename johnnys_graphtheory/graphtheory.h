@@ -41,6 +41,7 @@ struct graph {
         gsl_matrix_free( lap  );
         gsl_matrix_free( deg  );
         gsl_matrix_free( inc  );
+        gsl_matrix_free( minSpan );
         gsl_vector_complex_free( evals );
     }
 };
@@ -318,6 +319,14 @@ void MinSpanTree( graph & gr )
     MatrixPrint( gr.minSpan );
 }
 
+/* This function attempts a Hamiltonian Circuit for a given permutation of an incidence matrix.
+ * It will print the first successful circuit, or nothing if none exist in the current permutation.  
+ * Beginning at the first vertex, the algorithm traverses the columns and rows of the incidence matrix
+ * looking for 1s that indicate connected vertices. When a vertex has been visited, all the 1s associated
+ * with that vertex are deleted and the traversal continues.
+ * To try a different path, the function returns, and the incidence matrix is permuted to the next sequence
+ * of edges. This will force a different path to be taken.
+ */
 bool TryCircuit( matrix *& inc, const int &rows )
 {
     bool ret = false;
@@ -375,7 +384,7 @@ bool TryCircuit( matrix *& inc, const int &rows )
         if( numVisited == rows+1 ){
             cout << "A Hamiltonian Circuit: " << circuitString << endl;
             i = rows;
-            return true;}
+            ret = true;}
     }
     gsl_matrix_free( incCopy );
     gsl_matrix_free( incEmpty );
@@ -433,31 +442,7 @@ bool HamiltonianCircuit( matrix *& mat, const int &sz, int lvl )
     }
     return foundcircuit;
 }
-/*
-void HamiltonianCircuit( graph & gr )
-{
-    // gsl_permutation_init( p );       // reset to identity permutation (0,1,2,3,...,N-1)
-    // gsl_permutation_swap( p, i, j ); // swap values
-     RECURSIVE
-        take first col and swap with second item. If 2nd item consists of more than one col, call function again with pivot at first col of '2nd item'
-        so
-        permute( item1, item2 )
-        permute( col1, permute( col2, col3 ) )
-    
-    int rows = gr.inc->size1;
-    int cols = gr.inc->size2;
-    int matSize = (rows*cols);
 
-    for( int i=0; i<cols; i++ ){
-        MatrixPrint( gr.inc );
-        cout << endl;
-        gsl_matrix_swap_columns( gr.inc, i, 0 );
-      //  gsl_permutation_next( p );
-      //  gsl_permute( p, gr.inc->data, cols, matSize ); 
-    }
-    //gsl_permutation_swap( p, 2, 3 );
-}
-*/
 // test prototypes
 void test1();
 void test2();
