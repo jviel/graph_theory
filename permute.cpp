@@ -1,3 +1,8 @@
+/* THIS PROGRAM IS AN EXPERIMENT FOR RECURSIVELY PERMUTING A SEQUENCE OF NUMBERS
+ * OF ANY LENGTH. # OF PERMUTATIONS IS N! WHERE N IS THE NUMBER OF ELEMENTS
+ * written by Johnny Viel 3.20.16
+ *******************************************************************************/
+ 
 #include <iostream>
 
 using namespace std;
