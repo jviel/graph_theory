@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_eigen.h>
@@ -281,7 +282,7 @@ void MinSpanTree( graph & gr )
             rows = gr.numNodes;
     double  totalWeight = 0;
     double  cur, cheapest;
-    int     visited[rows] = {0}; // hash table. Each cell represents a node. If 1, it has been visited
+    vector<int> visited(rows, 0); // hash table. Each cell represents a node. If 1, it has been visited
 
     visited[0] = 1;                                              // begin with 'a' visited
     auto set = [](int* ij, int i, int j ){ ij[0]=i; ij[1]=j; };  // lambda fxn to set ij
